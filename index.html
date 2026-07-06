@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,8 +26,8 @@
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; margin-top: 20px; }
         
-        .settings-select { background: #252529; color: white; border: 1px solid #3a3a42; padding: 6px 10px; border-radius: 6px; font-size: 14px; cursor: pointer; }
         .settings-group { display: flex; gap: 10px; align-items: center; background: #252529; padding: 6px 12px; border-radius: 8px; border: 1px solid #2a2a30; }
+        .settings-select { background: #252529; color: white; border: 1px solid #3a3a42; padding: 6px 10px; border-radius: 6px; font-size: 14px; cursor: pointer; }
 
         .product-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid #2a2a30; display: flex; flex-direction: column; }
         .product-img { width: 100%; height: 220px; object-fit: cover; background: #252529; }
@@ -43,8 +43,11 @@
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); }
         input { width: 100%; padding: 14px; background: #252529; border: 1px solid #3a3a42; color: white; border-radius: 8px; margin-bottom: 15px; }
         .submit-btn { width: 100%; background: #007bff; color: white; border: none; padding: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        
+        /* Orders styling met een duidelijke delete knop */
         .order-item { background: #252529; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); color: white; text-align: left; position: relative; }
-        .delete-order-btn { position: absolute; top: 15px; right: 15px; background: var(--accent); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .delete-order-btn { position: absolute; top: 15px; right: 15px; background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; z-index: 10; display: block !important; }
+        .delete-order-btn:hover { background: #ff1a53; }
     </style>
 </head>
 <body>
@@ -54,26 +57,22 @@
         <div class="nav-links">
             <div class="settings-group">
                 <select id="lang-select" class="settings-select" onchange="wisselTaal(this.value)">
-                    <option value="en">🇬🇧 EN</option>
                     <option value="nl">🇳🇱 NL</option>
+                    <option value="en">🇬🇧 EN</option>
                     <option value="de">🇩🇪 DE</option>
                     <option value="fr">🇫🇷 FR</option>
                 </select>
-                <select id="currency-select" class="settings-select" onchange="wisselValuta(this.value)">
-                    <option value="USD">$ USD</option>
-                    <option value="EUR">€ EUR</option>
-                </select>
             </div>
             
-            <button class="nav-btn" id="login-nav-btn" onclick="openModal('auth-modal')">👤 Login</button>
-            <button class="nav-btn" id="cart-nav-btn" onclick="openModal('cart-modal')">🛒 Cart</button>
+            <button class="nav-btn" id="login-nav-btn" onclick="openModal('auth-modal')">👤 Inloggen</button>
+            <button class="nav-btn" id="cart-nav-btn" onclick="openModal('cart-modal')">🛒 Winkelwagen</button>
             <button class="nav-btn admin-only" id="admin-upload-btn" onclick="openModal('upload-modal')">➕ [Admin] Upload</button>
-            <button class="nav-btn admin-only" id="admin-orders-btn" onclick="laadBestellingen(); openModal('orders-modal')">✉️ [Admin] Orders</button>
+            <button class="nav-btn admin-only" id="admin-orders-btn" onclick="laadBestellingen(); openModal('orders-modal')">✉️ [Admin] Bestellingen</button>
         </div>
     </nav>
 
     <div class="container">
-        <h2 id="section-title">Available 3D Prints</h2>
+        <h2 id="section-title">Beschikbare 3D Prints</h2>
         <div class="grid" id="products-grid"></div>
     </div>
 
@@ -81,12 +80,12 @@
     <div id="auth-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('auth-modal')">&times;</span>
-            <h2 id="modal-login-title">Login</h2>
-            <input type="email" id="email" placeholder="Your email address" required>
-            <button class="submit-btn" id="btn-send-code" onclick="stuurLoginCode()">Send Real Verification Code</button>
+            <h2 id="modal-login-title">Inloggen</h2>
+            <input type="email" id="email" placeholder="Je e-mailadres" required>
+            <button class="submit-btn" id="btn-send-code" onclick="stuurLoginCode()">Stuur Echte Verificatie Code</button>
             <div style="margin-top: 25px; border-top: 1px solid #3a3a42; padding-top: 20px;">
-                <input type="text" id="logincode" placeholder="Enter code">
-                <button class="submit-btn" id="btn-verify-code" style="background: var(--primary); color: black;" onclick="verifieerCode()">Verify & Log in</button>
+                <input type="text" id="logincode" placeholder="Voer code in">
+                <button class="submit-btn" id="btn-verify-code" style="background: var(--primary); color: black;" onclick="verifieerCode()">Verifieer & Log in</button>
             </div>
         </div>
     </div>
@@ -95,20 +94,20 @@
     <div id="upload-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('upload-modal')">&times;</span>
-            <h2 id="modal-upload-title">Go Live with New Item</h2>
-            <input type="text" id="prod-naam" placeholder="Product Name">
-            <input type="number" id="prod-prijs" placeholder="Price (in EUR €)" step="0.01">
-            <input type="text" id="prod-foto" placeholder="Image Link (URL)">
-            <button class="submit-btn" id="btn-save-db" style="background: var(--primary); color: black;" onclick="uploadProduct()">Save in Database</button>
+            <h2 id="modal-upload-title">Nieuw Item Live Zetten</h2>
+            <input type="text" id="prod-naam" placeholder="Productnaam">
+            <input type="number" id="prod-prijs" placeholder="Prijs (in EUR €)" step="0.01">
+            <input type="text" id="prod-foto" placeholder="Link naar afbeelding (URL)">
+            <button class="submit-btn" id="btn-save-db" style="background: var(--primary); color: black;" onclick="uploadProduct()">Opslaan in Database</button>
         </div>
     </div>
 
     <!-- ORDERS MODAL -->
     <div id="orders-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
             <span class="close-btn" onclick="closeModal('orders-modal')">&times;</span>
-            <h2 id="modal-orders-title">Orders from Database</h2>
-            <div id="bestellingen-lijst"></div>
+            <h2 id="modal-orders-title">Bestellingen uit Database</h2>
+            <div id="bestellingen-lijst" style="margin-top: 20px;"></div>
         </div>
     </div>
 
@@ -116,11 +115,11 @@
     <div id="cart-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-            <h2 id="modal-cart-title">Checkout via Payconiq</h2>
-            <input type="text" id="klant-naam" placeholder="Full Name">
-            <input type="text" id="klant-postcode" placeholder="Postal Code">
-            <input type="text" id="klant-adres" placeholder="Streetname + House number">
-            <button class="submit-btn" id="btn-place-order" style="background: #00ea1e; color: black;" onclick="startPayconiq()">Place Order & Pay</button>
+            <h2 id="modal-cart-title">Afrekenen via Payconiq</h2>
+            <input type="text" id="klant-naam" placeholder="Volledige Naam">
+            <input type="text" id="klant-postcode" placeholder="Postcode">
+            <input type="text" id="klant-adres" placeholder="Straatnaam + Huisnummer">
+            <button class="submit-btn" id="btn-place-order" style="background: #00ea1e; color: black;" onclick="startPayconiq()">Plaats Bestelling & Betaal</button>
         </div>
     </div>
 
@@ -129,34 +128,16 @@
         const EMAILJS_PUBLIC_KEY = "nX-Rp_DkBYlLtAX-I"; 
         const EMAILJS_TEMPLATE_ID = "template_osvg32m";
         const EMAILJS_SERVICE_ID = "service_cb995gq"; 
-
-        // JOUW EIGEN PAYCONIQ GEGEVENS (Vervang dit eventueel door jouw link!)
         const PAYCONIQ_ONTVANGER = "kostasnikora@gmail.com"; 
 
         emailjs.init(EMAILJS_PUBLIC_KEY);
 
         let isAdmin = false;
         let gegenereerdeCode = null;
-        let geselecteerdProduct = null; // Houdt bij welk item gekocht wordt
-        
-        let huidigeTaal = "en";
-        let huidigeValuta = "USD";
-        const EUR_NAAR_USD_KOERS = 1.09;
+        let geselecteerdProduct = null;
+        let huidigeTaal = "nl";
 
         const vertalingen = {
-            en: {
-                title: "Available 3D Prints", loginNav: "👤 Login", adminNav: "👤 Admin", cartNav: "🛒 Cart", uploadNav: "➕ [Admin] Upload", ordersNav: "✉️ [Admin] Orders",
-                noProducts: "No products in database. Log in as Admin to add items.", buyBtn: "Add to Cart", removeBtn: "❌ Remove from DB",
-                loginTitle: "Login", emailPlh: "Your email address", sendCodeBtn: "Send Real Verification Code", enterCodePlh: "Enter code", verifyBtn: "Verify & Log in",
-                uploadTitle: "Go Live with New Item", prodNamePlh: "Product Name", prodPricePlh: "Price (in EUR €)", prodImgPlh: "Image Link (URL)", saveDbBtn: "Save in Database",
-                ordersTitle: "Orders from Database", noOrders: "No orders found.", client: "Client", address: "Address", status: "Status", product: "Item",
-                cartTitle: "Checkout via Payconiq", fullNamePlh: "Full Name", zipPlh: "Postal Code", streetPlh: "Streetname + House number", placeOrderBtn: "Place Order & Pay",
-                alertEmail: "Please enter an email address!", alertSending: "Code is being sent via email... please wait.", alertSuccess: "The verification code has been successfully sent! Check your inbox.",
-                alertWrongCode: "Incorrect code! Please check your email inbox.", alertInputAll: "Please fill in all your details!", alertOrderSaved: "Order saved! Opening Payconiq payment screen...",
-                alertAdminWelcome: "Welcome back, Admin Kostas!", alertClientWelcome: "Successfully logged in as client.", alertUploadSuccess: "Successfully put live!",
-                alertUploadCheck: "Please fill in at least a name and price!", alertConfirmDelete: "Are you sure you want to delete this product?", alertDeleted: "Product deleted!",
-                alertConfirmDeleteOrder: "Delete this order?", alertOrderDeleted: "Order removed!"
-            },
             nl: {
                 title: "Beschikbare 3D Prints", loginNav: "👤 Inloggen", adminNav: "👤 Admin", cartNav: "🛒 Winkelwagen", uploadNav: "➕ [Admin] Upload", ordersNav: "✉️ [Admin] Bestellingen",
                 noProducts: "Geen producten in database. Log in als Admin om items toe te voegen.", buyBtn: "In Winkelwagen", removeBtn: "❌ Verwijder uit DB",
@@ -168,38 +149,25 @@
                 alertWrongCode: "Onjuiste code! Controleer je e-mail inbox.", alertInputAll: "Vul al je gegevens in!", alertOrderSaved: "Bestelling opgeslagen! Payconiq betaalscherm wordt geopend...",
                 alertAdminWelcome: "Welkom terug, Admin Kostas!", alertClientWelcome: "Succesvol ingelogd als klant.", alertUploadSuccess: "Succesvol live gezet!",
                 alertUploadCheck: "Vul tenminste een naam en prijs in!", alertConfirmDelete: "Weet je zeker dat je dit product wilt wissen?", alertDeleted: "Product verwijderd!",
-                alertConfirmDeleteOrder: "Deze bestelling verwijderen?", alertOrderDeleted: "Bestelling verwijderd!"
+                alertConfirmDeleteOrder: "Weet je zeker dat je deze bestelling wilt verwijderen uit het systeem?", alertOrderDeleted: "Bestelling succesvol verwijderd!"
             },
-            de: {
-                title: "Verfügbare 3D-Drucke", loginNav: "👤 Einloggen", adminNav: "👤 Admin", cartNav: "🛒 Warenkorb", uploadNav: "➕ [Admin] Hochladen", ordersNav: "✉️ [Admin] Bestellungen",
-                noProducts: "Keine Produkte in der Datenbank. Als Admin anmelden, um Artikel hinzuzufügen.", buyBtn: "In den Warenkorb", removeBtn: "❌ Aus DB löschen",
-                loginTitle: "Einloggen", emailPlh: "Ihre E-Mail-Adresse", sendCodeBtn: "Echten Verifizierungscode senden", enterCodePlh: "Code eingeben", verifyBtn: "Verifizieren & Einloggen",
-                uploadTitle: "Neuen Artikel online stellen", prodNamePlh: "Produktname", prodPricePlh: "Preis (in EUR €)", prodImgPlh: "Bild-Link (URL)", saveDbBtn: "In Datenbank speichern",
-                ordersTitle: "Bestellen aus der Datenbank", noOrders: "Keine Bestellungen gefunden.", client: "Kunde", address: "Adresse", status: "Status", product: "Artikel",
-                cartTitle: "Bezahlen via Payconiq", fullNamePlh: "Vollständiger Name", zipPlh: "Postleitzahl", streetPlh: "Straße + Hausnummer", placeOrderBtn: "Bestellung aufgeben & Bezahlen",
-                alertEmail: "Bitte geben Sie eine E-Mail-Adresse ein!", alertSending: "Code wird per E-Mail gesendet... bitte warten.", alertSuccess: "Der Verifizierungscode wurde erfolgreich gesendet! Prüfen Sie Ihren Posteingang.",
-                alertWrongCode: "Falscher Code! Bitte überprüfen Sie Ihr E-Mail-Postfach.", alertInputAll: "Bitte füllen Sie alle Daten aus!", alertOrderSaved: "Bestellung gespeichert! Payconiq wird geöffnet...",
-                alertAdminWelcome: "Willkommen zurück, Admin Kostas!", alertClientWelcome: "Erfolgreich als Kunde eingeloggt.", alertUploadSuccess: "Erfolgreich live geschaltet!",
-                alertUploadCheck: "Bitte mindestens Name und Preis eingeben!", alertConfirmDelete: "Sind Sie sicher, dass Sie dieses Produkt löschen möchten?", alertDeleted: "Produkt gelöscht!",
-                alertConfirmDeleteOrder: "Diese Bestellung löschen?", alertOrderDeleted: "Bestellung gelöscht!"
-            },
-            fr: {
-                title: "Impressions 3D Disponibles", loginNav: "👤 Connexion", adminNav: "👤 Admin", cartNav: "🛒 Panier", uploadNav: "➕ [Admin] Téléverser", ordersNav: "✉️ [Admin] Commandes",
-                noProducts: "Aucun produit dans la base de données. Connectez-vous en tant qu'Admin pour ajouter des articles.", buyBtn: "Ajouter au panier", removeBtn: "❌ Supprimer de la DB",
-                loginTitle: "Connexion", emailPlh: "Votre adresse e-mail", sendCodeBtn: "Envoyer le vrai code de vérification", enterCodePlh: "Entrez le code", verifyBtn: "Vérifier & Se connecter",
-                uploadTitle: "Mettre en ligne un nouvel article", prodNamePlh: "Nom du produit", prodPricePlh: "Prix (en EUR €)", prodImgPlh: "Lien de l'image (URL)", saveDbBtn: "Enregistrer dans la DB",
-                ordersTitle: "Commandes de la base de données", noOrders: "Aucune commande trouvée.", client: "Client", address: "Adresse", status: "Statut", product: "Article",
-                cartTitle: "Paiement via Payconiq", fullNamePlh: "Nom complet", zipPlh: "Code postal", streetPlh: "Nom de rue + Numéro", placeOrderBtn: "Passer la commande & Payer",
-                alertEmail: "Veuillez entrer une adresse e-mail !", alertSending: "Le code is en cours d'envoi par e-mail... veuillez patienter.", alertSuccess: "Le code de vérification a été envoyé avec succès ! Vérifiez votre boîte de réception.",
-                alertWrongCode: "Code incorrect ! Veuillez vérifier votre boîte de réception e-mail.", alertInputAll: "Veuillez remplir toutes vos données !", alertOrderSaved: "Commande enregistrée ! Ouverture de Payconiq...",
-                alertAdminWelcome: "Bon retour, Admin Kostas !", alertClientWelcome: "Connexion réussie en tant que client.", alertUploadSuccess: "Mis en ligne avec succès !",
-                alertUploadCheck: "Veuillez entrer au moins un nom et un prix !", alertConfirmDelete: "Êtes-vous sûr de vouloir supprimer ce produit ?", alertDeleted: "Produit supprimé!",
-                alertConfirmDeleteOrder: "Supprimer cette commande ?", alertOrderDeleted: "Commande supprimée!"
+            en: {
+                title: "Available 3D Prints", loginNav: "👤 Login", adminNav: "👤 Admin", cartNav: "🛒 Cart", uploadNav: "➕ [Admin] Upload", ordersNav: "✉️ [Admin] Orders",
+                noProducts: "No products in database. Log in as Admin to add items.", buyBtn: "Add to Cart", removeBtn: "❌ Remove from DB",
+                loginTitle: "Login", emailPlh: "Your email address", sendCodeBtn: "Send Real Verification Code", enterCodePlh: "Enter code", verifyBtn: "Verify & Log in",
+                uploadTitle: "Go Live with New Item", prodNamePlh: "Product Name", prodPricePlh: "Price (in EUR €)", prodImgPlh: "Image Link (URL)", saveDbBtn: "Save in Database",
+                ordersTitle: "Orders from Database", noOrders: "No orders found.", client: "Client", address: "Address", status: "Status", product: "Item",
+                cartTitle: "Checkout via Payconiq", fullNamePlh: "Full Name", zipPlh: "Postal Code", streetPlh: "Streetname + House number", placeOrderBtn: "Place Order & Pay",
+                alertEmail: "Please enter an email address!", alertSending: "Code is being sent via email... please wait.", alertSuccess: "The verification code has been successfully sent! Check your inbox.",
+                alertWrongCode: "Incorrect code! Please check your email inbox.", alertInputAll: "Please fill in all your details!", alertOrderSaved: "Order saved! Opening Payconiq payment screen...",
+                alertAdminWelcome: "Welcome back, Admin Kostas!", alertClientWelcome: "Successfully logged in as client.", alertUploadSuccess: "Successfully put live!",
+                alertUploadCheck: "Please fill in at least a name and price!", alertConfirmDelete: "Are you sure you want to delete this product?", alertDeleted: "Product deleted!",
+                alertConfirmDeleteOrder: "Are you sure you want to delete this order?", alertOrderDeleted: "Order removed!"
             }
         };
 
         window.onload = function() {
-            wisselTaal("en");
+            wisselTaal("nl");
         };
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
@@ -212,49 +180,37 @@
 
         function wisselTaal(taal) {
             huidigeTaal = taal;
-            document.getElementById('lang-select').value = taal;
+            if(!vertalingen[taal]) huidigeTaal = "nl";
             
-            document.getElementById('section-title').innerText = vertalingen[taal].title;
-            if(!isAdmin) document.getElementById('login-nav-btn').innerText = vertalingen[taal].loginNav;
-            document.getElementById('cart-nav-btn').innerText = vertalingen[taal].cartNav;
-            document.getElementById('admin-upload-btn').innerText = vertalingen[taal].uploadNav;
-            document.getElementById('admin-orders-btn').innerText = vertalingen[taal].ordersNav;
+            document.getElementById('lang-select').value = huidigeTaal;
+            document.getElementById('section-title').innerText = vertalingen[huidigeTaal].title;
             
-            document.getElementById('modal-login-title').innerText = vertalingen[taal].loginTitle;
-            document.getElementById('email').placeholder = vertalingen[taal].emailPlh;
-            document.getElementById('btn-send-code').innerText = vertalingen[taal].sendCodeBtn;
-            document.getElementById('logincode').placeholder = vertalingen[taal].enterCodePlh;
-            document.getElementById('btn-verify-code').innerText = vertalingen[taal].verifyBtn;
+            if(!isAdmin) document.getElementById('login-nav-btn').innerText = vertalingen[huidigeTaal].loginNav;
+            document.getElementById('cart-nav-btn').innerText = vertalingen[huidigeTaal].cartNav;
+            document.getElementById('admin-upload-btn').innerText = vertalingen[huidigeTaal].uploadNav;
+            document.getElementById('admin-orders-btn').innerText = vertalingen[huidigeTaal].ordersNav;
             
-            document.getElementById('modal-upload-title').innerText = vertalingen[taal].uploadTitle;
-            document.getElementById('prod-naam').placeholder = vertalingen[taal].prodNamePlh;
-            document.getElementById('prod-prijs').placeholder = vertalingen[taal].prodPricePlh;
-            document.getElementById('prod-foto').placeholder = vertalingen[taal].prodImgPlh;
-            document.getElementById('btn-save-db').innerText = vertalingen[taal].saveDbBtn;
+            document.getElementById('modal-login-title').innerText = vertalingen[huidigeTaal].loginTitle;
+            document.getElementById('email').placeholder = vertalingen[huidigeTaal].emailPlh;
+            document.getElementById('btn-send-code').innerText = vertalingen[huidigeTaal].sendCodeBtn;
+            document.getElementById('logincode').placeholder = vertalingen[huidigeTaal].enterCodePlh;
+            document.getElementById('btn-verify-code').innerText = vertalingen[huidigeTaal].verifyBtn;
             
-            document.getElementById('modal-orders-title').innerText = vertalingen[taal].ordersTitle;
+            document.getElementById('modal-upload-title').innerText = vertalingen[huidigeTaal].uploadTitle;
+            document.getElementById('prod-naam').placeholder = vertalingen[huidigeTaal].prodNamePlh;
+            document.getElementById('prod-prijs').placeholder = vertalingen[huidigeTaal].prodPricePlh;
+            document.getElementById('prod-foto').placeholder = vertalingen[huidigeTaal].prodImgPlh;
+            document.getElementById('btn-save-db').innerText = vertalingen[huidigeTaal].saveDbBtn;
             
-            document.getElementById('modal-cart-title').innerText = vertalingen[taal].cartTitle;
-            document.getElementById('klant-naam').placeholder = vertalingen[taal].fullNamePlh;
-            document.getElementById('klant-postcode').placeholder = vertalingen[taal].zipPlh;
-            document.getElementById('klant-adres').placeholder = vertalingen[taal].streetPlh;
-            document.getElementById('btn-place-order').innerText = vertalingen[taal].placeOrderBtn;
+            document.getElementById('modal-orders-title').innerText = vertalingen[huidigeTaal].ordersTitle;
+            
+            document.getElementById('modal-cart-title').innerText = vertalingen[huidigeTaal].cartTitle;
+            document.getElementById('klant-naam').placeholder = vertalingen[huidigeTaal].fullNamePlh;
+            document.getElementById('klant-postcode').placeholder = vertalingen[huidigeTaal].zipPlh;
+            document.getElementById('klant-adres').placeholder = vertalingen[huidigeTaal].streetPlh;
+            document.getElementById('btn-place-order').innerText = vertalingen[huidigeTaal].placeOrderBtn;
             
             laadProducten();
-        }
-
-        function wisselValuta(valuta) {
-            huidigeValuta = valuta;
-            laadProducten();
-        }
-
-        function formatteerPrijs(prijsInEur) {
-            if (huidigeValuta === "USD") {
-                let prijsInUsd = prijsInEur * EUR_NAAR_USD_KOERS;
-                return `$ ${prijsInUsd.toFixed(2)}`;
-            } else {
-                return `€ ${parseFloat(prijsInEur).toFixed(2)}`;
-            }
         }
 
         function laadProducten() {
@@ -265,13 +221,13 @@
             producten.forEach(p => {
                 let card = document.createElement('div');
                 card.className = 'product-card';
-                let imageHtml = p.fotoUrl ? `<img src="${p.fotoUrl}" class="product-img" alt="${p.naam}">` : `<div class="product-img" style="display:flex; align-items:center; justify-content:center; color:var(--text-muted);">[ No Photo ]</div>`;
+                let imageHtml = p.fotoUrl ? `<img src="${p.fotoUrl}" class="product-img" alt="${p.naam}">` : `<div class="product-img" style="display:flex; align-items:center; justify-content:center; color:var(--text-muted);">[ Geen Foto ]</div>`;
 
                 card.innerHTML = `
                     ${imageHtml}
                     <div class="product-info">
                         <div class="product-title"><b>${p.naam}</b></div>
-                        <div class="product-price">${formatteerPrijs(p.prijs)}</div>
+                        <div class="product-price">€ ${parseFloat(p.prijs).toFixed(2)}</div>
                         <button class="buy-btn" onclick="openCartVoorProduct(${p.id}, '${p.naam}', ${p.prijs})">${vertalingen[huidigeTaal].buyBtn}</button>
                         <button class="remove-btn" id="del-${p.id}" onclick="verwijderProduct(${p.id})">${vertalingen[huidigeTaal].removeBtn}</button>
                     </div>
@@ -301,7 +257,6 @@
                 .then(function(response) {
                     alert(vertalingen[huidigeTaal].alertSuccess);
                 }, function(error) {
-                    console.error('EmailJS Error Details:', error);
                     alert('EmailJS Error: ' + error.text);
                 });
         }
@@ -354,7 +309,7 @@
             laadProducten();
         }
 
-        // === ORDERS VERWIJDEREN FUNCTIE ===
+        // === ORDERS VERWIJDEREN (FORCEERBAAR) ===
         function verwijderBestelling(id) {
             if(!confirm(vertalingen[huidigeTaal].alertConfirmDeleteOrder)) return;
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
@@ -364,14 +319,13 @@
             laadBestellingen();
         }
 
-        // === PAYCONIQ REAL BETALING & BRUG ===
+        // === PAYCONIQ BETALING ===
         function startPayconiq() {
             let naam = document.getElementById('klant-naam').value;
             let postcode = document.getElementById('klant-postcode').value;
             let adres = document.getElementById('klant-adres').value;
             if(!naam || !postcode || !adres) return alert(vertalingen[huidigeTaal].alertInputAll);
 
-            // Als er geen specifiek product was gekozen, pakken we een fallback waarde
             let itemNaam = geselecteerdProduct ? geselecteerdProduct.naam : "3D Print Order";
             let itemPrijs = geselecteerdProduct ? geselecteerdProduct.prijs : 10.00;
 
@@ -390,12 +344,9 @@
             alert(vertalingen[huidigeTaal].alertOrderSaved);
             closeModal('cart-modal');
 
-            // Genereer een Payconiq/Bancontact QR generator URL om direct geld te ontvangen via een scan/betaalknop!
-            // Dit gebruikt de officiële SEPA betaalstructuur die Payconiq apps direct kunnen lezen.
             let beschrijving = encodeURIComponent("Order: " + itemNaam);
             let betaalUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.payconiq.com/pay?amount=${itemPrijs.toFixed(2)}%26receiver=${encodeURIComponent(PAYCONIQ_ONTVANGER)}%26desc=${beschrijving}`;
             
-            // Open de QR-code/betaalknop in een nieuw tabblad zodat ze direct via de Payconiq app kunnen scannen of betalen!
             window.open(betaalUrl, '_blank');
         }
 
@@ -405,15 +356,19 @@
             lijst.innerHTML = bestellingen.length === 0 ? `<p>${vertalingen[huidigeTaal].noOrders}</p>` : '';
             
             bestellingen.forEach(b => {
+                let itemElement = document.createElement('div');
+                itemElement.className = 'order-item';
+                
                 let productTekst = b.product ? `<b>${vertalingen[huidigeTaal].product}:</b> ${b.product} (€${parseFloat(b.prijs).toFixed(2)})<br>` : '';
-                lijst.innerHTML += `
-                    <div class="order-item">
-                        <button class="delete-order-btn" onclick="verwijderBestelling(${b.id})">❌</button>
-                        <b>${vertalingen[huidigeTaal].client}:</b> ${b.klantNaam}<br>
-                        <b>${vertalingen[huidigeTaal].address}:</b> ${b.adres}, ${b.postcode}<br>
-                        ${productTekst}
-                        <b>${vertalingen[huidigeTaal].status}:</b> <span style="color: #ffaa00">${b.status}</span>
-                    </div>`;
+                
+                itemElement.innerHTML = `
+                    <button class="delete-order-btn" onclick="verwijderBestelling(${b.id})">❌</button>
+                    <b>${vertalingen[huidigeTaal].client}:</b> ${b.klantNaam}<br>
+                    <b>${vertalingen[huidigeTaal].address}:</b> ${b.adres}, ${b.postcode}<br>
+                    ${productTekst}
+                    <b>${vertalingen[huidigeTaal].status}:</b> <span style="color: #ffaa00">${b.status}</span>
+                `;
+                lijst.appendChild(itemElement);
             });
         }
     </script>
