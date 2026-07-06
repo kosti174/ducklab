@@ -108,7 +108,7 @@
     </div>
 
     <script>
-        // === EMAILJS CONFIGURATIE (Alles staat nu 100% juist) ===
+        // === EMAILJS CONFIGURATIE ===
         const EMAILJS_PUBLIC_KEY = "nX-Rp_DkBYlLtAX-I"; 
         const EMAILJS_TEMPLATE_ID = "template_osvg32m";
         const EMAILJS_SERVICE_ID = "service_cb995gq"; 
@@ -154,10 +154,10 @@
 
             gegenereerdeCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-            // Weer teruggezet naar to_email omdat je template nu {{to_email}} heeft!
+            // NU GEKOPPELD AAN JOUW TEMPLATE VARIABELEN!
             let templateParams = {
-                to_email: emailadres,
-                code: gegenereerdeCode
+                to_email: emailadres, // Zorg dat in EmailJS bij 'To Email' {{to_email}} staat
+                passcode: gegenereerdeCode // Dit matcht nu met de {{passcode}} in je e-mail tekst!
             };
 
             alert('Code wordt nu verstuurd via e-mail... even geduld.');
@@ -167,7 +167,7 @@
                     alert('De verificatiecode is succesvol verzonden naar ' + emailadres + '!');
                 }, function(error) {
                     console.error('EmailJS Error Details:', error);
-                    alert('Oeps! EmailJS geeft een foutmelding: ' + error.text + ' (Bekijk de F12 console voor details)');
+                    alert('Oeps! EmailJS geeft een foutmelding: ' + error.text);
                 });
         }
 
@@ -215,6 +215,7 @@
         function verwijderProduct(id) {
             if(!confirm("Weet je zeker dat je dit product wilt wissen?")) return;
             let producten = JSON.parse(localStorage.getItem('ducklab_products')) || [];
+            producten = campaigners.filter(p => p.id !== id);
             producten = producten.filter(p => p.id !== id);
             localStorage.setItem('ducklab_products', JSON.stringify(producten));
             alert('Product verwijderd!');
