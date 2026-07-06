@@ -13,241 +13,218 @@
             --text-muted: #a0a0a5;
             --accent: #ff3366;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); padding-bottom: 60px; }
-
-        /* NAVIGATIE BALK */
-        nav {
-            background-color: var(--card-bg);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #2a2a30;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .logo { font-size: 24px; font-weight: bold; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        nav { background-color: var(--card-bg); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2a2a30; position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 24px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
         .nav-links { display: flex; gap: 20px; align-items: center; }
-        .nav-btn {
-            background: none; border: none; color: var(--text-main); font-size: 16px;
-            cursor: pointer; padding: 8px 16px; border-radius: 6px; transition: 0.3s;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .nav-btn:hover { background-color: rgba(255,255,255,0.1); color: var(--primary); }
-        
-        /* STANDAARD VERBORGEN VOOR BEZOEKERS */
-        .admin-only { 
-            display: none; 
-            border: 1px dashed var(--accent); 
-            color: var(--accent); 
-        }
-        .admin-only:hover { background-color: var(--accent); color: white; }
-
-        /* HOOFD LAYOUT */
+        .nav-btn { background: none; border: none; color: var(--text-main); font-size: 16px; cursor: pointer; padding: 8px 16px; border-radius: 6px; }
+        .nav-btn:hover { color: var(--primary); }
+        .admin-only { display: none; border: 1px dashed var(--accent); color: var(--accent); }
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; margin-top: 20px; }
-
-        /* PRODUCT KAARTEN */
-        .product-card {
-            background: var(--card-bg); border-radius: 12px; overflow: hidden;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.3); transition: transform 0.3s;
-            border: 1px solid #2a2a30;
-        }
-        .product-card:hover { transform: translateY(-5px); }
-        .product-img { width: 100%; height: 220px; background: #252529; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
-        .product-info { padding: 20px; }
+        
+        /* Product kaart aangepast voor échte afbeeldingen */
+        .product-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid #2a2a30; display: flex; flex-direction: column; }
+        .product-img { width: 100%; height: 220px; object-fit: cover; background: #252529; }
+        .product-info { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
         .product-title { font-size: 18px; margin-bottom: 8px; }
         .product-price { color: var(--primary); font-size: 20px; font-weight: bold; margin-bottom: 15px; }
-        .buy-btn {
-            width: 100%; background: var(--primary); color: #000; border: none;
-            padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s;
-        }
-        .buy-btn:hover { background: #00cc88; transform: scale(1.02); }
-
-        /* MODALS / OVERLAYS */
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); display: flex; align-items: center;
-            justify-content: center; z-index: 1000; transition: 0.3s;
-        }
+        .buy-btn { width: 100%; background: var(--primary); color: #000; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: auto; }
+        .remove-btn { background: var(--accent); color: white; border: none; padding: 8px; width: 100%; margin-top: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; display: none; }
+        
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .hidden { display: none !important; }
-        .modal-content {
-            background: var(--card-bg); padding: 40px; border-radius: 16px;
-            width: 100%; max-width: 450px; border: 1px solid #3a3a42; position: relative;
-        }
+        .modal-content { background: var(--card-bg); padding: 40px; border-radius: 16px; width: 100%; max-width: 450px; border: 1px solid #3a3a42; position: relative; }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); }
-        .close-btn:hover { color: white; }
-
-        h2 { margin-bottom: 20px; color: var(--text-main); font-size: 22px; }
-        input {
-            width: 100%; padding: 14px; background: #252529; border: 1px solid #3a3a42;
-            color: white; border-radius: 8px; margin-bottom: 15px; font-size: 16px;
-        }
-        input:focus { border-color: var(--primary); outline: none; }
-        .submit-btn {
-            width: 100%; background: #007bff; color: white; border: none;
-            padding: 14px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer;
-        }
-        .submit-btn:hover { background: #0056b3; }
-
-        .order-item {
-            background: #252529; padding: 15px; border-radius: 8px;
-            margin-bottom: 10px; border-left: 4px solid var(--primary);
-        }
-        .empty-message { color: var(--text-muted); font-style: italic; }
+        input { width: 100%; padding: 14px; background: #252529; border: 1px solid #3a3a42; color: white; border-radius: 8px; margin-bottom: 15px; }
+        .submit-btn { width: 100%; background: #007bff; color: white; border: none; padding: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .order-item { background: #252529; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); }
     </style>
 </head>
 <body>
 
-    <!-- TOP NAVIGATIE BALK -->
     <nav>
         <div class="logo">DuckLab Studio</div>
         <div class="nav-links">
             <button class="nav-btn" id="login-nav-btn" onclick="openModal('auth-modal')">👤 Inloggen</button>
             <button class="nav-btn" onclick="openModal('cart-modal')">🛒 Winkelwagen</button>
-            
-            <!-- Admin Knoppen -->
             <button class="nav-btn admin-only" id="admin-upload-btn" onclick="openModal('upload-modal')">➕ [Admin] Upload</button>
-            <button class="nav-btn admin-only" id="admin-orders-btn" onclick="openModal('orders-modal')">✉️ [Admin] Bestellingen</button>
+            <button class="nav-btn admin-only" id="admin-orders-btn" onclick="laadBestellingen(); openModal('orders-modal')">✉️ [Admin] Bestellingen</button>
         </div>
     </nav>
 
-    <!-- MAIN SHOP AREA -->
     <div class="container">
         <h2>Beschikbare 3D Prints</h2>
-        <div class="grid" id="products-grid">
-            <p class="empty-message" id="no-products">Er zijn momenteel geen producten beschikbaar. Log in als Admin om items te uploaden.</p>
-        </div>
+        <div class="grid" id="products-grid"></div>
     </div>
 
-    <!-- 1. AUTH MODAL (LOGIN & REGISTREREN) -->
+    <!-- AUTH MODAL -->
     <div id="auth-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 450px; min-height: 420px;">
+        <div class="modal-content">
             <span class="close-btn" onclick="closeModal('auth-modal')">&times;</span>
-            <h2>Inloggen of Registreren</h2>
-            <p style="color: var(--text-muted); margin-bottom: 15px;">Vul je e-mail in om een verificatiecode te ontvangen via Java.</p>
-            
+            <h2>Inloggen</h2>
             <input type="email" id="email" placeholder="Je e-mailadres" required>
             <button class="submit-btn" onclick="stuurLoginCode()">Send Verificatie Code</button>
-            
-            <!-- Direct zichtbaar invoerveld om bugs te voorkomen -->
-            <div id="code-invullen" style="margin-top: 25px; border-top: 1px solid #3a3a42; padding-top: 20px;">
-                <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px;">Voer hier de 6-cijferige code in:</label>
-                <input type="text" id="logincode" placeholder="Bijvoorbeeld: 123456">
+            <div style="margin-top: 25px; border-top: 1px solid #3a3a42; padding-top: 20px;">
+                <input type="text" id="logincode" placeholder="Voer code in">
                 <button class="submit-btn" style="background: var(--primary); color: black;" onclick="verifieerCode()">Verifieer & Log in</button>
             </div>
         </div>
     </div>
 
-    <!-- 2. UPLOAD MODAL (ADMIN) -->
+    <!-- UPLOAD MODAL -->
     <div id="upload-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('upload-modal')">&times;</span>
-            <h2>Nieuw Item Uploaden</h2>
-            <input type="text" id="prod-naam" placeholder="Productnaam" required>
-            <input type="number" id="prod-prijs" placeholder="Prijs (€)" step="0.01" required>
-            <input type="file" id="prod-foto" accept="image/*">
-            <button class="submit-btn" style="background: var(--primary); color: black;" onclick="uploadProduct()">Item Live Zetten</button>
+            <h2>Nieuw Item Live Zetten</h2>
+            <input type="text" id="prod-naam" placeholder="Productnaam">
+            <input type="number" id="prod-prijs" placeholder="Prijs (€)" step="0.01">
+            <input type="text" id="prod-foto" placeholder="Link naar afbeelding (URL)">
+            <button class="submit-btn" style="background: var(--primary); color: black;" onclick="uploadProduct()">Opslaan in Database</button>
         </div>
     </div>
 
-    <!-- 3. ORDERS MODAL (ADMIN) -->
+    <!-- ORDERS MODAL -->
     <div id="orders-modal" class="modal hidden">
         <div class="modal-content" style="max-width: 600px;">
             <span class="close-btn" onclick="closeModal('orders-modal')">&times;</span>
-            <h2>Binnengekomen Bestellingen (✉️)</h2>
-            <div id="bestellingen-lijst">
-                <p class="empty-message">Nog geen bestellingen binnengekomen.</p>
-            </div>
+            <h2>Bestellingen uit Database</h2>
+            <div id="bestellingen-lijst"></div>
         </div>
     </div>
 
-    <!-- 4. WINKELWAGEN -->
+    <!-- WINKELWAGEN -->
     <div id="cart-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
             <h2>Afrekenen via Payconiq</h2>
-            <input type="text" id="klant-naam" placeholder="Volledige Naam" required>
-            <input type="text" id="klant-postcode" placeholder="Postcode" required>
-            <input type="text" id="klant-adres" placeholder="Straatnaam en Huisnummer" required>
-            <button class="submit-btn" style="background: #00ea1e; color: black;" onclick="startPayconiq()">Start Payconiq Betaling</button>
+            <input type="text" id="klant-naam" placeholder="Volledige Naam">
+            <input type="text" id="klant-postcode" placeholder="Postcode">
+            <input type="text" id="klant-adres" placeholder="Straatnaam + Huisnummer">
+            <button class="submit-btn" style="background: #00ea1e; color: black;" onclick="startPayconiq()">Plaats Bestelling</button>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGICA -->
     <script>
+        let isAdmin = false;
+        const backendUrl = "http://localhost:8080/api";
+
+        window.onload = laadProducten;
+
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        function stuurLoginCode() {
-            let emailInput = document.getElementById('email').value;
-            if(!emailInput) return alert('Vul een e-mailadres in!');
+        // 1. HAAL PRODUCTEN OP (Inclusief afbeeldingen!)
+        function laadProducten() {
+            fetch(`${backendUrl}/products`)
+                .then(res => res.json())
+                .then(data => {
+                    let grid = document.getElementById('products-grid');
+                    grid.innerHTML = data.length === 0 ? '<p>Geen producten in database.</p>' : '';
+                    data.forEach(p => {
+                        let card = document.createElement('div');
+                        card.className = 'product-card';
+                        
+                        // Checken of er een afbeelding is meegegeven, anders fallback tekst
+                        let imageHtml = p.fotoUrl ? `<img src="${p.fotoUrl}" class="product-img" alt="${p.naam}">` : `<div class="product-img" style="display:flex; align-items:center; justify-content:center; color:var(--text-muted);">[ Geen Foto ]</div>`;
 
-            fetch(`http://localhost:8080/api/auth/code?email=${emailInput}`, { method: 'POST' })
-                .then(response => {
-                    if(response.ok) {
-                        alert('Verificatiecode succesvol verstuurd via DuckLab Studio!');
-                    } else {
-                        alert('De Java backend reageerde, maar er ging iets mis.');
-                    }
-                })
-                .catch(error => {
-                    alert('Spring Boot staat momenteel UIT of start nog op. (Simulatie: Code is 123456)');
+                        card.innerHTML = `
+                            ${imageHtml}
+                            <div class="product-info">
+                                <div class="product-title"><b>${p.naam}</b></div>
+                                <div class="product-price">€ ${p.prijs.toFixed(2)}</div>
+                                <button class="buy-btn" onclick="openModal('cart-modal')">In Winkelwagen</button>
+                                <button class="remove-btn" id="del-${p.id}" onclick="verwijderProduct(${p.id})">❌ Verwijder uit DB</button>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                        if(isAdmin) document.getElementById(`del-${p.id}`).style.display = 'block';
+                    });
+                }).catch(() => {
+                    document.getElementById('products-grid').innerHTML = '<p>Backend offline (Simulatiemodus actief).</p>';
                 });
         }
 
-        function verifieerCode() {
-            let emailInput = document.getElementById('email').value;
-            let codeInput = document.getElementById('logincode').value;
+        // 2. EMAIL EN LOGIN
+        function stuurLoginCode() {
+            let email = document.getElementById('email').value;
+            fetch(`${backendUrl}/auth/code?email=${email}`, { method: 'POST' })
+                .then(res => alert('Code is verstuurd! Check je mailbox.'))
+                .catch(() => alert('Backend offline. Gebruik code 123456 voor simulatie.'));
+        }
 
-            if(!emailInput) return alert('Vul eerst je e-mailadres in!');
-            if(!codeInput) return alert('Vul de 6-cijferige code in!');
-            
-            if(emailInput.toLowerCase() === "kostasnikora@gmail.com") {
+        function verifieerCode() {
+            let email = document.getElementById('email').value;
+            let code = document.getElementById('logincode').value;
+
+            if(email.toLowerCase() === "kostasnikora@gmail.com" && (code === "123456" || code)) {
+                isAdmin = true;
                 alert('Welkom terug, Admin Kostas!');
                 document.getElementById('admin-upload-btn').style.display = 'flex';
                 document.getElementById('admin-orders-btn').style.display = 'flex';
                 document.getElementById('login-nav-btn').innerText = '👤 Admin';
+                laadProducten();
             } else {
-                alert('Succesvol ingelogd als klant.');
+                alert('Ingelogd als klant.');
             }
             closeModal('auth-modal');
         }
 
+        // 3. PRODUCT EN FOTO LINK OPSLAAN IN DB
         function uploadProduct() {
             let naam = document.getElementById('prod-naam').value;
             let prijs = document.getElementById('prod-prijs').value;
-            
-            if(!naam || !prijs) return alert('Vul een naam en prijs in!');
+            let fotoUrl = document.getElementById('prod-foto').value;
 
-            let noProdMsg = document.getElementById('no-products');
-            if(noProdMsg) noProdMsg.remove();
-
-            let grid = document.getElementById('products-grid');
-            let card = document.createElement('div');
-            card.className = 'product-card';
-            card.innerHTML = `
-                <div class="product-img"> [ Afbeelding ] </div>
-                <div class="product-info">
-                    <div class="product-title">${naam}</div>
-                    <div class="product-price">€ ${parseFloat(prijs).toFixed(2)}</div>
-                    <button class="buy-btn" onclick="openModal('cart-modal')">In Winkelwagen</button>
-                </div>
-            `;
-            
-            grid.appendChild(card);
-            alert(`"${naam}" is succesvol toegevoegd aan de winkelpagina!`);
-            closeModal('upload-modal');
-            
-            // Velden leegmaken voor volgende keer
-            document.getElementById('prod-naam').value = '';
-            document.getElementById('prod-prijs').value = '';
+            fetch(`${backendUrl}/admin/upload?naam=${naam}&prijs=${prijs}&fotoUrl=${fotoUrl}`, { method: 'POST' })
+                .then(() => {
+                    alert('Succesvol opgeslagen in DB!');
+                    laadProducten();
+                    closeModal('upload-modal');
+                    // Reset inputs
+                    document.getElementById('prod-naam').value = '';
+                    document.getElementById('prod-prijs').value = '';
+                    document.getElementById('prod-foto').value = '';
+                });
         }
 
-        function startPayconiq() { closeModal('cart-modal'); }
+        // 4. REMOVE
+        function verwijderProduct(id) {
+            if(!confirm("Weet je zeker dat je dit product uit de database wilt wissen?")) return;
+            
+            fetch(`${backendUrl}/admin/product/${id}`, { method: 'DELETE' })
+                .then(() => {
+                    alert('Product is gewist!');
+                    laadProducten();
+                });
+        }
+
+        // 5. BESTELLINGEN
+        function startPayconiq() {
+            let naam = document.getElementById('klant-naam').value;
+            let postcode = document.getElementById('klant-postcode').value;
+            let adres = document.getElementById('klant-adres').value;
+
+            fetch(`${backendUrl}/checkout/payconiq?naam=${naam}&postcode=${postcode}&adres=${adres}`, { method: 'POST' })
+                .then(() => {
+                    alert('Bestelling opgeslagen!');
+                    closeModal('cart-modal');
+                });
+        }
+
+        function laadBestellingen() {
+            let email = document.getElementById('email').value;
+            fetch(`${backendUrl}/admin/bestellingen?email=${email}`)
+                .then(res => res.json())
+                .then(data => {
+                    let lijst = document.getElementById('bestellingen-lijst');
+                    lijst.innerHTML = data.length === 0 ? '<p>Geen bestellingen gevonden.</p>' : '';
+                    data.forEach(b => {
+                        lijst.innerHTML += `<div class="order-item"><b>Klant:</b> ${b.klantNaam}<br><b>Adres:</b> ${b.adres}, ${b.postcode}<br><b>Status:</b> ${b.status}</div>`;
+                    });
+                });
+        }
     </script>
 </body>
 </html>
