@@ -44,9 +44,9 @@
         input { width: 100%; padding: 14px; background: #252529; border: 1px solid #3a3a42; color: white; border-radius: 8px; margin-bottom: 15px; }
         .submit-btn { width: 100%; background: #007bff; color: white; border: none; padding: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
         
-        /* Orders styling met een duidelijke delete knop */
+        /* Orders styling */
         .order-item { background: #252529; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); color: white; text-align: left; position: relative; }
-        .delete-order-btn { position: absolute; top: 15px; right: 15px; background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; z-index: 10; display: block !important; }
+        .delete-order-btn { position: absolute; top: 15px; right: 15px; background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; z-index: 10; }
         .delete-order-btn:hover { background: #ff1a53; }
     </style>
 </head>
@@ -61,6 +61,10 @@
                     <option value="en">🇬🇧 EN</option>
                     <option value="de">🇩🇪 DE</option>
                     <option value="fr">🇫🇷 FR</option>
+                </select>
+                <select id="currency-select" class="settings-select" onchange="wisselValuta(this.value)">
+                    <option value="EUR">€ EUR</option>
+                    <option value="USD">$ USD</option>
                 </select>
             </div>
             
@@ -136,6 +140,8 @@
         let gegenereerdeCode = null;
         let geselecteerdProduct = null;
         let huidigeTaal = "nl";
+        let huidigeValuta = "EUR";
+        const EUR_NAAR_USD_KOERS = 1.09;
 
         const vertalingen = {
             nl: {
@@ -149,7 +155,7 @@
                 alertWrongCode: "Onjuiste code! Controleer je e-mail inbox.", alertInputAll: "Vul al je gegevens in!", alertOrderSaved: "Bestelling opgeslagen! Payconiq betaalscherm wordt geopend...",
                 alertAdminWelcome: "Welkom terug, Admin Kostas!", alertClientWelcome: "Succesvol ingelogd als klant.", alertUploadSuccess: "Succesvol live gezet!",
                 alertUploadCheck: "Vul tenminste een naam en prijs in!", alertConfirmDelete: "Weet je zeker dat je dit product wilt wissen?", alertDeleted: "Product verwijderd!",
-                alertConfirmDeleteOrder: "Weet je zeker dat je deze bestelling wilt verwijderen uit het systeem?", alertOrderDeleted: "Bestelling succesvol verwijderd!"
+                alertConfirmDeleteOrder: "Weet je zeker dat je deze bestelling wilt verwijderen?", alertOrderDeleted: "Bestelling succesvol verwijderd!"
             },
             en: {
                 title: "Available 3D Prints", loginNav: "👤 Login", adminNav: "👤 Admin", cartNav: "🛒 Cart", uploadNav: "➕ [Admin] Upload", ordersNav: "✉️ [Admin] Orders",
@@ -213,6 +219,20 @@
             laadProducten();
         }
 
+        function wisselValuta(valuta) {
+            huidigeValuta = valuta;
+            laadProducten();
+        }
+
+        function formatteerPrijs(prijsInEur) {
+            if (huidigeValuta === "USD") {
+                let prijsInUsd = prijsInEur * EUR_NAAR_USD_KOERS;
+                return `$ ${prijsInUsd.toFixed(2)}`;
+            } else {
+                return `€ ${parseFloat(prijsInEur).toFixed(2)}`;
+            }
+        }
+
         function laadProducten() {
             let producten = JSON.parse(localStorage.getItem('ducklab_products')) || [];
             let grid = document.getElementById('products-grid');
@@ -227,7 +247,7 @@
                     ${imageHtml}
                     <div class="product-info">
                         <div class="product-title"><b>${p.naam}</b></div>
-                        <div class="product-price">€ ${parseFloat(p.prijs).toFixed(2)}</div>
+                        <div class="product-price">${formatteerPrijs(p.prijs)}</div>
                         <button class="buy-btn" onclick="openCartVoorProduct(${p.id}, '${p.naam}', ${p.prijs})">${vertalingen[huidigeTaal].buyBtn}</button>
                         <button class="remove-btn" id="del-${p.id}" onclick="verwijderProduct(${p.id})">${vertalingen[huidigeTaal].removeBtn}</button>
                     </div>
@@ -309,11 +329,14 @@
             laadProducten();
         }
 
-        // === ORDERS VERWIJDEREN (FORCEERBAAR) ===
+        // === SPECIFIEKE ORDER VERWIJDEREN ===
         function verwijderBestelling(id) {
             if(!confirm(vertalingen[huidigeTaal].alertConfirmDeleteOrder)) return;
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
+            
+            // Filter heel specifiek op ID zodat er maar EEN order uitgaat
             bestellingen = bestellingen.filter(b => b.id !== id);
+            
             localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
             alert(vertalingen[huidigeTaal].alertOrderDeleted);
             laadBestellingen();
@@ -353,13 +376,19 @@
         function laadBestellingen() {
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
             let lijst = document.getElementById('bestellingen-lijst');
-            lijst.innerHTML = bestellingen.length === 0 ? `<p>${vertalingen[huidigeTaal].noOrders}</p>` : '';
+            lijst.innerHTML = ''; // Maak de lijst eerst helemaal leeg
+            
+            if (bestellingen.length === 0) {
+                lijst.innerHTML = `<p>${vertalingen[huidigeTaal].noOrders}</p>`;
+                return;
+            }
             
             bestellingen.forEach(b => {
                 let itemElement = document.createElement('div');
                 itemElement.className = 'order-item';
                 
-                let productTekst = b.product ? `<b>${vertalingen[huidigeTaal].product}:</b> ${b.product} (€${parseFloat(b.prijs).toFixed(2)})<br>` : '';
+                let tonenPrijs = formatteerPrijs(b.prijs);
+                let productTekst = b.product ? `<b>${vertalingen[huidigeTaal].product}:</b> ${b.product} (${tonenPrijs})<br>` : '';
                 
                 itemElement.innerHTML = `
                     <button class="delete-order-btn" onclick="verwijderBestelling(${b.id})">❌</button>
