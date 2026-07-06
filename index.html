@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,15 +17,19 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); padding-bottom: 60px; }
-        nav { background-color: var(--card-bg); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2a2a30; position: sticky; top: 0; z-index: 100; }
+        nav { background-color: var(--card-bg); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2a2a30; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 15px; }
         .logo { font-size: 24px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
-        .nav-links { display: flex; gap: 20px; align-items: center; }
-        .nav-btn { background: none; border: none; color: var(--text-main); font-size: 16px; cursor: pointer; padding: 8px 16px; border-radius: 6px; }
+        .nav-links { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .nav-btn { background: none; border: none; color: var(--text-main); font-size: 16px; cursor: pointer; padding: 8px 12px; border-radius: 6px; }
         .nav-btn:hover { color: var(--primary); }
         .admin-only { display: none; border: 1px dashed var(--accent); color: var(--accent); }
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; margin-top: 20px; }
         
+        /* Settings paneel stijlen */
+        .settings-select { background: #252529; color: white; border: 1px solid #3a3a42; padding: 6px 10px; border-radius: 6px; font-size: 14px; cursor: pointer; }
+        .settings-group { display: flex; gap: 10px; align-items: center; background: #252529; padding: 6px 12px; border-radius: 8px; border: 1px solid #2a2a30; }
+
         .product-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid #2a2a30; display: flex; flex-direction: column; }
         .product-img { width: 100%; height: 220px; object-fit: cover; background: #252529; }
         .product-info { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
@@ -48,15 +52,29 @@
     <nav>
         <div class="logo">DuckLab Studio</div>
         <div class="nav-links">
-            <button class="nav-btn" id="login-nav-btn" onclick="openModal('auth-modal')">👤 Inloggen</button>
-            <button class="nav-btn" onclick="openModal('cart-modal')">🛒 Winkelwagen</button>
+            <!-- Taal & Valuta Selectors -->
+            <div class="settings-group">
+                <select id="lang-select" class="settings-select" onchange="wisselTaal(this.value)">
+                    <option value="en">🇬🇧 EN</option>
+                    <option value="nl">🇳🇱 NL</option>
+                    <option value="de">🇩🇪 DE</option>
+                    <option value="fr">🇫🇷 FR</option>
+                </select>
+                <select id="currency-select" class="settings-select" onchange="wisselValuta(this.value)">
+                    <option value="USD">$ USD</option>
+                    <option value="EUR">€ EUR</option>
+                </select>
+            </div>
+            
+            <button class="nav-btn" id="login-nav-btn" onclick="openModal('auth-modal')">👤 Login</button>
+            <button class="nav-btn" id="cart-nav-btn" onclick="openModal('cart-modal')">🛒 Cart</button>
             <button class="nav-btn admin-only" id="admin-upload-btn" onclick="openModal('upload-modal')">➕ [Admin] Upload</button>
-            <button class="nav-btn admin-only" id="admin-orders-btn" onclick="laadBestellingen(); openModal('orders-modal')">✉️ [Admin] Bestellingen</button>
+            <button class="nav-btn admin-only" id="admin-orders-btn" onclick="laadBestellingen(); openModal('orders-modal')">✉️ [Admin] Orders</button>
         </div>
     </nav>
 
     <div class="container">
-        <h2>Beschikbare 3D Prints</h2>
+        <h2 id="section-title">Available 3D Prints</h2>
         <div class="grid" id="products-grid"></div>
     </div>
 
@@ -64,12 +82,12 @@
     <div id="auth-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('auth-modal')">&times;</span>
-            <h2>Inloggen</h2>
-            <input type="email" id="email" placeholder="Je e-mailadres" required>
-            <button class="submit-btn" onclick="stuurLoginCode()">Stuur Echte Verificatie Code</button>
+            <h2 id="modal-login-title">Login</h2>
+            <input type="email" id="email" placeholder="Your email address" required>
+            <button class="submit-btn" id="btn-send-code" onclick="stuurLoginCode()">Send Real Verification Code</button>
             <div style="margin-top: 25px; border-top: 1px solid #3a3a42; padding-top: 20px;">
-                <input type="text" id="logincode" placeholder="Voer code in">
-                <button class="submit-btn" style="background: var(--primary); color: black;" onclick="verifieerCode()">Verifieer & Log in</button>
+                <input type="text" id="logincode" placeholder="Enter code">
+                <button class="submit-btn" id="btn-verify-code" style="background: var(--primary); color: black;" onclick="verifieerCode()">Verify & Log in</button>
             </div>
         </div>
     </div>
@@ -78,11 +96,11 @@
     <div id="upload-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('upload-modal')">&times;</span>
-            <h2>Nieuw Item Live Zetten</h2>
-            <input type="text" id="prod-naam" placeholder="Productnaam">
-            <input type="number" id="prod-prijs" placeholder="Prijs (€)" step="0.01">
-            <input type="text" id="prod-foto" placeholder="Link naar afbeelding (URL)">
-            <button class="submit-btn" style="background: var(--primary); color: black;" onclick="uploadProduct()">Opslaan in Database</button>
+            <h2 id="modal-upload-title">Go Live with New Item</h2>
+            <input type="text" id="prod-naam" placeholder="Product Name">
+            <input type="number" id="prod-prijs" placeholder="Price (in EUR €)" step="0.01">
+            <input type="text" id="prod-foto" placeholder="Image Link (URL)">
+            <button class="submit-btn" id="btn-save-db" style="background: var(--primary); color: black;" onclick="uploadProduct()">Save in Database</button>
         </div>
     </div>
 
@@ -90,7 +108,7 @@
     <div id="orders-modal" class="modal hidden">
         <div class="modal-content" style="max-width: 600px;">
             <span class="close-btn" onclick="closeModal('orders-modal')">&times;</span>
-            <h2>Bestellingen uit Database</h2>
+            <h2 id="modal-orders-title">Orders from Database</h2>
             <div id="bestellingen-lijst"></div>
         </div>
     </div>
@@ -99,11 +117,11 @@
     <div id="cart-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-            <h2>Afrekenen via Payconiq</h2>
-            <input type="text" id="klant-naam" placeholder="Volledige Naam">
-            <input type="text" id="klant-postcode" placeholder="Postcode">
-            <input type="text" id="klant-adres" placeholder="Straatnaam + Huisnummer">
-            <button class="submit-btn" style="background: #00ea1e; color: black;" onclick="startPayconiq()">Plaats Bestelling</button>
+            <h2 id="modal-cart-title">Checkout via Payconiq</h2>
+            <input type="text" id="klant-naam" placeholder="Full Name">
+            <input type="text" id="klant-postcode" placeholder="Postal Code">
+            <input type="text" id="klant-adres" placeholder="Streetname + House number">
+            <button class="submit-btn" id="btn-place-order" style="background: #00ea1e; color: black;" onclick="startPayconiq()">Place Order</button>
         </div>
     </div>
 
@@ -113,34 +131,143 @@
         const EMAILJS_TEMPLATE_ID = "template_osvg32m";
         const EMAILJS_SERVICE_ID = "service_cb995gq"; 
 
-        // Activeer EmailJS
         emailjs.init(EMAILJS_PUBLIC_KEY);
 
         let isAdmin = false;
         let gegenereerdeCode = null;
+        
+        // Standaard instellingen: Engels en USD
+        let huidigeTaal = "en";
+        let huidigeValuta = "USD";
+        const EUR_NAAR_USD_KOERS = 1.09; // Wisselkoers van EUR naar USD
 
-        window.onload = laadProducten;
+        // Woordenboek voor vertalingen
+        const vertalingen = {
+            en: {
+                title: "Available 3D Prints", loginNav: "👤 Login", adminNav: "👤 Admin", cartNav: "🛒 Cart", uploadNav: "➕ [Admin] Upload", ordersNav: "✉️ [Admin] Orders",
+                noProducts: "No products in database. Log in as Admin to add items.", buyBtn: "Add to Cart", removeBtn: "❌ Remove from DB",
+                loginTitle: "Login", emailPlh: "Your email address", sendCodeBtn: "Send Real Verification Code", enterCodePlh: "Enter code", verifyBtn: "Verify & Log in",
+                uploadTitle: "Go Live with New Item", prodNamePlh: "Product Name", prodPricePlh: "Price (in EUR €)", prodImgPlh: "Image Link (URL)", saveDbBtn: "Save in Database",
+                ordersTitle: "Orders from Database", noOrders: "No orders found.", client: "Client", address: "Address", status: "Status",
+                cartTitle: "Checkout via Payconiq", fullNamePlh: "Full Name", zipPlh: "Postal Code", streetPlh: "Streetname + House number", placeOrderBtn: "Place Order",
+                alertEmail: "Please enter an email address!", alertSending: "Code is being sent via email... please wait.", alertSuccess: "The verification code has been successfully sent! Check your inbox.",
+                alertWrongCode: "Incorrect code! Please check your email inbox.", alertInputAll: "Please fill in all your data!", alertOrderSaved: "Order saved!",
+                alertAdminWelcome: "Welcome back, Admin Kostas!", alertClientWelcome: "Successfully logged in as client.", alertUploadSuccess: "Successfully put live!",
+                alertUploadCheck: "Please fill in at least a name and price!", alertConfirmDelete: "Are you sure you want to delete this product?", alertDeleted: "Product deleted!"
+            },
+            nl: {
+                title: "Beschikbare 3D Prints", loginNav: "👤 Inloggen", adminNav: "👤 Admin", cartNav: "🛒 Winkelwagen", uploadNav: "➕ [Admin] Upload", ordersNav: "✉️ [Admin] Bestellingen",
+                noProducts: "Geen producten in database. Log in als Admin om items toe te voegen.", buyBtn: "In Winkelwagen", removeBtn: "❌ Verwijder uit DB",
+                loginTitle: "Inloggen", emailPlh: "Je e-mailadres", sendCodeBtn: "Stuur Echte Verificatie Code", enterCodePlh: "Voer code in", verifyBtn: "Verifieer & Log in",
+                uploadTitle: "Nieuw Item Live Zetten", prodNamePlh: "Productnaam", prodPricePlh: "Prijs (in EUR €)", prodImgPlh: "Link naar afbeelding (URL)", saveDbBtn: "Opslaan in Database",
+                ordersTitle: "Bestellingen uit Database", noOrders: "Geen bestellingen gevonden.", client: "Klant", address: "Adres", status: "Status",
+                cartTitle: "Afrekenen via Payconiq", fullNamePlh: "Volledige Naam", zipPlh: "Postcode", streetPlh: "Straatnaam + Huisnummer", placeOrderBtn: "Plaats Bestelling",
+                alertEmail: "Vul een e-mailadres in!", alertSending: "Code wordt nu verstuurd via e-mail... even geduld.", alertSuccess: "De verificatiecode is succesvol verzonden! Check je inbox.",
+                alertWrongCode: "Onjuiste code! Controleer je e-mail inbox.", alertInputAll: "Vul al je gegevens in!", alertOrderSaved: "Bestelling opgeslagen!",
+                alertAdminWelcome: "Welkom terug, Admin Kostas!", alertClientWelcome: "Succesvol ingelogd als klant.", alertUploadSuccess: "Succesvol live gezet!",
+                alertUploadCheck: "Vul tenminste een naam en prijs in!", alertConfirmDelete: "Weet je zeker dat je dit product wilt wissen?", alertDeleted: "Product verwijderd!"
+            },
+            de: {
+                title: "Verfügbare 3D-Drucke", loginNav: "👤 Einloggen", adminNav: "👤 Admin", cartNav: "🛒 Warenkorb", uploadNav: "➕ [Admin] Hochladen", ordersNav: "✉️ [Admin] Bestellungen",
+                noProducts: "Keine Produkte in der Datenbank. Als Admin anmelden, um Artikel hinzuzufügen.", buyBtn: "In den Warenkorb", removeBtn: "❌ Aus DB löschen",
+                loginTitle: "Einloggen", emailPlh: "Ihre E-Mail-Adresse", sendCodeBtn: "Echten Verifizierungscode senden", enterCodePlh: "Code eingeben", verifyBtn: "Verifizieren & Einloggen",
+                uploadTitle: "Neuen Artikel online stellen", prodNamePlh: "Produktname", prodPricePlh: "Preis (in EUR €)", prodImgPlh: "Bild-Link (URL)", saveDbBtn: "In Datenbank speichern",
+                ordersTitle: "Bestellungen aus der Datenbank", noOrders: "Keine Bestellungen gefunden.", client: "Kunde", address: "Adresse", status: "Status",
+                cartTitle: "Bezahlen via Payconiq", fullNamePlh: "Vollständiger Name", zipPlh: "Postleitzahl", streetPlh: "Straße + Hausnummer", placeOrderBtn: "Bestellung aufgeben",
+                alertEmail: "Bitte geben Sie eine E-Mail-Adresse ein!", alertSending: "Code wird per E-Mail gesendet... bitte warten.", alertSuccess: "Der Verifizierungscode wurde erfolgreich gesendet! Prüfen Sie Ihren Posteingang.",
+                alertWrongCode: "Falscher Code! Bitte überprüfen Sie Ihr E-Mail-Postfach.", alertInputAll: "Bitte füllen Sie alle Daten aus!", alertOrderSaved: "Bestellung gespeichert!",
+                alertAdminWelcome: "Willkommen zurück, Admin Kostas!", alertClientWelcome: "Erfolgreich als Kunde eingeloggt.", alertUploadSuccess: "Erfolgreich live geschaltet!",
+                alertUploadCheck: "Bitte mindestens Name und Preis eingeben!", alertConfirmDelete: "Sind Sie sicher, dass Sie dieses Produkt löschen möchten?", alertDeleted: "Produkt gelöscht!"
+            },
+            fr: {
+                title: "Impressions 3D Disponibles", loginNav: "👤 Connexion", adminNav: "👤 Admin", cartNav: "🛒 Panier", uploadNav: "➕ [Admin] Téléverser", ordersNav: "✉️ [Admin] Commandes",
+                noProducts: "Aucun produit dans la base de données. Connectez-vous en tant qu'Admin pour ajouter des articles.", buyBtn: "Ajouter au panier", removeBtn: "❌ Supprimer de la DB",
+                loginTitle: "Connexion", emailPlh: "Votre adresse e-mail", sendCodeBtn: "Envoyer le vrai code de vérification", enterCodePlh: "Entrez le code", verifyBtn: "Vérifier & Se connecter",
+                uploadTitle: "Mettre en ligne un nouvel article", prodNamePlh: "Nom du produit", prodPricePlh: "Prix (en EUR €)", prodImgPlh: "Lien de l'image (URL)", saveDbBtn: "Enregistrer dans la DB",
+                ordersTitle: "Commandes de la base de données", noOrders: "Aucune commande trouvée.", client: "Client", address: "Adresse", status: "Statut",
+                cartTitle: "Paiement via Payconiq", fullNamePlh: "Nom complet", zipPlh: "Code postal", streetPlh: "Nom de rue + Numéro", placeOrderBtn: "Passer la commande",
+                alertEmail: "Veuillez entrer une adresse e-mail !", alertSending: "Le code est en cours d'envoi par e-mail... veuillez patienter.", alertSuccess: "Le code de vérification a été envoyé avec succès ! Vérifiez votre boîte de réception.",
+                alertWrongCode: "Code incorrect ! Veuillez vérifier votre boîte de réception e-mail.", alertInputAll: "Veuillez remplir toutes vos données !", alertOrderSaved: "Commande enregistrée !",
+                alertAdminWelcome: "Bon retour, Admin Kostas !", alertClientWelcome: "Connexion réussie en tant que client.", alertUploadSuccess: "Mis en ligne avec succès !",
+                alertUploadCheck: "Veuillez entrer au moins un nom et un prix !", alertConfirmDelete: "Êtes-vous sûr de vouloir supprimer ce produit ?", alertDeleted: "Produit supprimé!"
+            }
+        };
+
+        window.onload = function() {
+            wisselTaal("en"); // Start in het Engels
+        };
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
+        // === TALEN SYSTEEM ===
+        function wisselTaal(taal) {
+            huidigeTaal = taal;
+            document.getElementById('lang-select').value = taal;
+            
+            // Pas de interface teksten aan
+            document.getElementById('section-title').innerText = vertalingen[taal].title;
+            if(!isAdmin) document.getElementById('login-nav-btn').innerText = vertalingen[taal].loginNav;
+            document.getElementById('cart-nav-btn').innerText = vertalingen[taal].cartNav;
+            document.getElementById('admin-upload-btn').innerText = vertalingen[taal].uploadNav;
+            document.getElementById('admin-orders-btn').innerText = vertalingen[taal].ordersNav;
+            
+            // Modals placeholders en titels
+            document.getElementById('modal-login-title').innerText = vertalingen[taal].loginTitle;
+            document.getElementById('email').placeholder = vertalingen[taal].emailPlh;
+            document.getElementById('btn-send-code').innerText = vertalingen[taal].sendCodeBtn;
+            document.getElementById('logincode').placeholder = vertalingen[taal].enterCodePlh;
+            document.getElementById('btn-verify-code').innerText = vertalingen[taal].verifyBtn;
+            
+            document.getElementById('modal-upload-title').innerText = vertalingen[taal].uploadTitle;
+            document.getElementById('prod-naam').placeholder = vertalingen[taal].prodNamePlh;
+            document.getElementById('prod-prijs').placeholder = vertalingen[taal].prodPricePlh;
+            document.getElementById('prod-foto').placeholder = vertalingen[taal].prodImgPlh;
+            document.getElementById('btn-save-db').innerText = vertalingen[taal].saveDbBtn;
+            
+            document.getElementById('modal-orders-title').innerText = vertalingen[taal].ordersTitle;
+            
+            document.getElementById('modal-cart-title').innerText = vertalingen[taal].cartTitle;
+            document.getElementById('klant-naam').placeholder = vertalingen[taal].fullNamePlh;
+            document.getElementById('klant-postcode').placeholder = vertalingen[taal].zipPlh;
+            document.getElementById('klant-adres').placeholder = vertalingen[taal].streetPlh;
+            document.getElementById('btn-place-order').innerText = vertalingen[taal].placeOrderBtn;
+            
+            laadProducten();
+        }
+
+        // === VALUTA SYSTEEM ===
+        function wisselValuta(valuta) {
+            huidigeValuta = valuta;
+            laadProducten();
+        }
+
+        function formatteerPrijs(prijsInEur) {
+            if (huidigeValuta === "USD") {
+                let prijsInUsd = prijsInEur * EUR_NAAR_USD_KOERS;
+                return `$ ${prijsInUsd.toFixed(2)}`;
+            } else {
+                return ` Rhine € ${parseFloat(prijsInEur).toFixed(2)}`;
+            }
+        }
+
         function laadProducten() {
             let producten = JSON.parse(localStorage.getItem('ducklab_products')) || [];
             let grid = document.getElementById('products-grid');
-            grid.innerHTML = producten.length === 0 ? '<p>Geen producten in database. Log in als Admin om items toe te voegen.</p>' : '';
+            grid.innerHTML = producten.length === 0 ? `<p>${vertalingen[huidigeTaal].noProducts}</p>` : '';
             
             producten.forEach(p => {
                 let card = document.createElement('div');
                 card.className = 'product-card';
-                let imageHtml = p.fotoUrl ? `<img src="${p.fotoUrl}" class="product-img" alt="${p.naam}">` : `<div class="product-img" style="display:flex; align-items:center; justify-content:center; color:var(--text-muted);">[ Geen Foto ]</div>`;
+                let imageHtml = p.fotoUrl ? `<img src="${p.fotoUrl}" class="product-img" alt="${p.naam}">` : `<div class="product-img" style="display:flex; align-items:center; justify-content:center; color:var(--text-muted);">[ No Photo ]</div>`;
 
                 card.innerHTML = `
                     ${imageHtml}
                     <div class="product-info">
                         <div class="product-title"><b>${p.naam}</b></div>
-                        <div class="product-price">€ ${parseFloat(p.prijs).toFixed(2)}</div>
-                        <button class="buy-btn" onclick="openModal('cart-modal')">In Winkelwagen</button>
-                        <button class="remove-btn" id="del-${p.id}" onclick="verwijderProduct(${p.id})">❌ Verwijder uit DB</button>
+                        <div class="product-price">${formatteerPrijs(p.prijs)}</div>
+                        <button class="buy-btn" onclick="openModal('cart-modal')">${vertalingen[huidigeTaal].buyBtn}</button>
+                        <button class="remove-btn" id="del-${p.id}" onclick="verwijderProduct(${p.id})">${vertalingen[huidigeTaal].removeBtn}</button>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -150,11 +277,10 @@
 
         function stuurLoginCode() {
             let emailadres = document.getElementById('email').value;
-            if(!emailadres) return alert('Vul een e-mailadres in!');
+            if(!emailadres) return alert(vertalingen[huidigeTaal].alertEmail);
 
             gegenereerdeCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-            // We sturen de code nu onder ALLE namen tegelijk op zodat EmailJS het altijd snapt!
             let templateParams = {
                 to_email: emailadres,
                 email: emailadres,
@@ -163,14 +289,14 @@
                 message: gegenereerdeCode
             };
 
-            alert('Code wordt nu verstuurd naar ' + emailadres + '... even geduld.');
+            alert(vertalingen[huidigeTaal].alertSending);
 
             emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
                 .then(function(response) {
-                    alert('De verificatiecode is succesvol verzonden! Check je inbox.');
+                    alert(vertalingen[huidigeTaal].alertSuccess);
                 }, function(error) {
                     console.error('EmailJS Error Details:', error);
-                    alert('Oeps! EmailJS geeft een foutmelding: ' + error.text);
+                    alert('EmailJS Error: ' + error.text);
                 });
         }
 
@@ -178,49 +304,47 @@
             let email = document.getElementById('email').value;
             let ingevoerdeCode = document.getElementById('logincode').value;
 
-            if(!gegenereerdeCode) {
-                return alert('Klik eerst op "Stuur Echte Verificatie Code"!');
-            }
+            if(!gegenereerdeCode) return;
 
             if(ingevoerdeCode === gegenereerdeCode) {
                 if(email.toLowerCase() === "kostasnikora@gmail.com") {
                     isAdmin = true;
-                    alert('Welkom terug, Admin Kostas!');
+                    alert(vertalingen[huidigeTaal].alertAdminWelcome);
                     document.getElementById('admin-upload-btn').style.display = 'flex';
                     document.getElementById('admin-orders-btn').style.display = 'flex';
-                    document.getElementById('login-nav-btn').innerText = '👤 Admin';
+                    document.getElementById('login-nav-btn').innerText = vertalingen[huidigeTaal].adminNav;
                     laadProducten();
                 } else {
-                    alert('Succesvol ingelogd als klant.');
+                    alert(vertalingen[huidigeTaal].alertClientWelcome);
                 }
                 closeModal('auth-modal');
             } else {
-                alert('Onjuiste code! Controleer je e-mail inbox.');
+                alert(vertalingen[huidigeTaal].alertWrongCode);
             }
         }
 
         function uploadProduct() {
             let naam = document.getElementById('prod-naam').value;
-            let prijs = document.getElementById('prod-prijs').value;
+            let prijs = document.getElementById('prod-prijs').value; // Wordt altijd opgeslagen als EUR basis
             let fotoUrl = document.getElementById('prod-foto').value;
-            if(!naam || !prijs) return alert('Vul tenminste een naam en prijs in!');
+            if(!naam || !prijs) return alert(vertalingen[huidigeTaal].alertUploadCheck);
 
             let producten = JSON.parse(localStorage.getItem('ducklab_products')) || [];
             producten.push({ id: Date.now(), naam: naam, prijs: parseFloat(prijs), fotoUrl: fotoUrl });
             localStorage.setItem('ducklab_products', JSON.stringify(producten));
 
-            alert('Succesvol live gezet!');
+            alert(vertalingen[huidigeTaal].alertUploadSuccess);
             laadProducten();
             closeModal('upload-modal');
             document.getElementById('prod-naam').value = ''; document.getElementById('prod-prijs').value = ''; document.getElementById('prod-foto').value = '';
         }
 
         function verwijderProduct(id) {
-            if(!confirm("Weet je zeker dat je dit product wilt wissen?")) return;
+            if(!confirm(vertalingen[huidigeTaal].alertConfirmDelete)) return;
             let producten = JSON.parse(localStorage.getItem('ducklab_products')) || [];
             producten = producten.filter(p => p.id !== id);
             localStorage.setItem('ducklab_products', JSON.stringify(producten));
-            alert('Product verwijderd!');
+            alert(vertalingen[huidigeTaal].alertDeleted);
             laadProducten();
         }
 
@@ -228,26 +352,26 @@
             let naam = document.getElementById('klant-naam').value;
             let postcode = document.getElementById('klant-postcode').value;
             let adres = document.getElementById('klant-adres').value;
-            if(!naam || !postcode || !adres) return alert('Vul al je gegevens in!');
+            if(!naam || !postcode || !adres) return alert(vertalingen[huidigeTaal].alertInputAll);
 
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
-            bestellingen.push({ klantNaam: naam, postcode: postcode, adres: adres, status: "Wacht op Payconiq betaling" });
+            bestellingen.push({ klantNaam: naam, postcode: postcode, adres: adres, status: "Pending Payconiq payment" });
             localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
 
-            alert('Bestelling opgeslagen!');
+            alert(vertalingen[huidigeTaal].alertOrderSaved);
             closeModal('cart-modal');
         }
 
         function laadBestellingen() {
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
             let lijst = document.getElementById('bestellingen-lijst');
-            lijst.innerHTML = bestellingen.length === 0 ? '<p>Geen bestellingen gevonden.</p>' : '';
+            lijst.innerHTML = bestellingen.length === 0 ? `<p>${vertalingen[huidigeTaal].noOrders}</p>` : '';
             bestellingen.forEach(b => {
                 lijst.innerHTML += `
                     <div class="order-item">
-                        <b>Klant:</b> ${b.klantNaam}<br>
-                        <b>Adres:</b> ${b.adres}, ${b.postcode}<br>
-                        <b>Status:</b> <span style="color: #ffaa00">${b.status}</span>
+                        <b>${vertalingen[huidigeTaal].client}:</b> ${b.klantNaam}<br>
+                        <b>${vertalingen[huidigeTaal].address}:</b> ${b.adres}, ${b.postcode}<br>
+                        <b>${vertalingen[huidigeTaal].status}:</b> <span style="color: #ffaa00">${b.status}</span>
                     </div>`;
             });
         }
