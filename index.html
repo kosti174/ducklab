@@ -108,7 +108,7 @@
     </div>
 
     <script>
-        // === EMAILJS CONFIGURATIE ===
+        // === EMAILJS CONFIGURATIE (Alles staat nu 100% juist) ===
         const EMAILJS_PUBLIC_KEY = "nX-Rp_DkBYlLtAX-I"; 
         const EMAILJS_TEMPLATE_ID = "template_osvg32m";
         const EMAILJS_SERVICE_ID = "service_cb995gq"; 
@@ -148,15 +148,15 @@
             });
         }
 
-        // VERSTUUR MET JE EIGEN CODES
         function stuurLoginCode() {
-            let email = document.getElementById('email').value;
-            if(!email) return alert('Vul een e-mailadres in!');
+            let emailadres = document.getElementById('email').value;
+            if(!emailadres) return alert('Vul een e-mailadres in!');
 
             gegenereerdeCode = Math.floor(100000 + Math.random() * 900000).toString();
 
+            // Weer teruggezet naar to_email omdat je template nu {{to_email}} heeft!
             let templateParams = {
-                to_email: email,
+                to_email: emailadres,
                 code: gegenereerdeCode
             };
 
@@ -164,10 +164,10 @@
 
             emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
                 .then(function(response) {
-                    alert('De verificatiecode is succesvol verzonden naar ' + email + '!');
+                    alert('De verificatiecode is succesvol verzonden naar ' + emailadres + '!');
                 }, function(error) {
-                    console.error('EmailJS Fout:', error);
-                    alert('Er ging iets mis bij het versturen. Controleer je instellingen in EmailJS.');
+                    console.error('EmailJS Error Details:', error);
+                    alert('Oeps! EmailJS geeft een foutmelding: ' + error.text + ' (Bekijk de F12 console voor details)');
                 });
         }
 
