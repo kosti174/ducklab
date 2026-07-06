@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Print Forge & Admin</title>
+    <title>DuckLab Studio & Admin</title>
     <!-- EmailJS bibliotheek inladen -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
@@ -26,7 +26,6 @@
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; margin-top: 20px; }
         
-        /* Settings paneel stijlen */
         .settings-select { background: #252529; color: white; border: 1px solid #3a3a42; padding: 6px 10px; border-radius: 6px; font-size: 14px; cursor: pointer; }
         .settings-group { display: flex; gap: 10px; align-items: center; background: #252529; padding: 6px 12px; border-radius: 8px; border: 1px solid #2a2a30; }
 
@@ -44,7 +43,8 @@
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); }
         input { width: 100%; padding: 14px; background: #252529; border: 1px solid #3a3a42; color: white; border-radius: 8px; margin-bottom: 15px; }
         .submit-btn { width: 100%; background: #007bff; color: white; border: none; padding: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
-        .order-item { background: #252529; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); color: white; text-align: left; }
+        .order-item { background: #252529; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); color: white; text-align: left; position: relative; }
+        .delete-order-btn { position: absolute; top: 15px; right: 15px; background: var(--accent); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -52,7 +52,6 @@
     <nav>
         <div class="logo">DuckLab Studio</div>
         <div class="nav-links">
-            <!-- Taal & Valuta Selectors -->
             <div class="settings-group">
                 <select id="lang-select" class="settings-select" onchange="wisselTaal(this.value)">
                     <option value="en">🇬🇧 EN</option>
@@ -113,7 +112,7 @@
         </div>
     </div>
 
-    <!-- WINKELWAGEN -->
+    <!-- WINKELWAGEN / CHECKOUT -->
     <div id="cart-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
@@ -121,98 +120,106 @@
             <input type="text" id="klant-naam" placeholder="Full Name">
             <input type="text" id="klant-postcode" placeholder="Postal Code">
             <input type="text" id="klant-adres" placeholder="Streetname + House number">
-            <button class="submit-btn" id="btn-place-order" style="background: #00ea1e; color: black;" onclick="startPayconiq()">Place Order</button>
+            <button class="submit-btn" id="btn-place-order" style="background: #00ea1e; color: black;" onclick="startPayconiq()">Place Order & Pay</button>
         </div>
     </div>
 
     <script>
-        // === EMAILJS CONFIGURATIE ===
+        // === CONFIGURATIE ===
         const EMAILJS_PUBLIC_KEY = "nX-Rp_DkBYlLtAX-I"; 
         const EMAILJS_TEMPLATE_ID = "template_osvg32m";
         const EMAILJS_SERVICE_ID = "service_cb995gq"; 
+
+        // JOUW EIGEN PAYCONIQ GEGEVENS (Vervang dit eventueel door jouw link!)
+        const PAYCONIQ_ONTVANGER = "kostasnikora@gmail.com"; 
 
         emailjs.init(EMAILJS_PUBLIC_KEY);
 
         let isAdmin = false;
         let gegenereerdeCode = null;
+        let geselecteerdProduct = null; // Houdt bij welk item gekocht wordt
         
-        // Standaard instellingen: Engels en USD
         let huidigeTaal = "en";
         let huidigeValuta = "USD";
-        const EUR_NAAR_USD_KOERS = 1.09; // Wisselkoers van EUR naar USD
+        const EUR_NAAR_USD_KOERS = 1.09;
 
-        // Woordenboek voor vertalingen
         const vertalingen = {
             en: {
                 title: "Available 3D Prints", loginNav: "👤 Login", adminNav: "👤 Admin", cartNav: "🛒 Cart", uploadNav: "➕ [Admin] Upload", ordersNav: "✉️ [Admin] Orders",
                 noProducts: "No products in database. Log in as Admin to add items.", buyBtn: "Add to Cart", removeBtn: "❌ Remove from DB",
                 loginTitle: "Login", emailPlh: "Your email address", sendCodeBtn: "Send Real Verification Code", enterCodePlh: "Enter code", verifyBtn: "Verify & Log in",
                 uploadTitle: "Go Live with New Item", prodNamePlh: "Product Name", prodPricePlh: "Price (in EUR €)", prodImgPlh: "Image Link (URL)", saveDbBtn: "Save in Database",
-                ordersTitle: "Orders from Database", noOrders: "No orders found.", client: "Client", address: "Address", status: "Status",
-                cartTitle: "Checkout via Payconiq", fullNamePlh: "Full Name", zipPlh: "Postal Code", streetPlh: "Streetname + House number", placeOrderBtn: "Place Order",
+                ordersTitle: "Orders from Database", noOrders: "No orders found.", client: "Client", address: "Address", status: "Status", product: "Item",
+                cartTitle: "Checkout via Payconiq", fullNamePlh: "Full Name", zipPlh: "Postal Code", streetPlh: "Streetname + House number", placeOrderBtn: "Place Order & Pay",
                 alertEmail: "Please enter an email address!", alertSending: "Code is being sent via email... please wait.", alertSuccess: "The verification code has been successfully sent! Check your inbox.",
-                alertWrongCode: "Incorrect code! Please check your email inbox.", alertInputAll: "Please fill in all your data!", alertOrderSaved: "Order saved!",
+                alertWrongCode: "Incorrect code! Please check your email inbox.", alertInputAll: "Please fill in all your details!", alertOrderSaved: "Order saved! Opening Payconiq payment screen...",
                 alertAdminWelcome: "Welcome back, Admin Kostas!", alertClientWelcome: "Successfully logged in as client.", alertUploadSuccess: "Successfully put live!",
-                alertUploadCheck: "Please fill in at least a name and price!", alertConfirmDelete: "Are you sure you want to delete this product?", alertDeleted: "Product deleted!"
+                alertUploadCheck: "Please fill in at least a name and price!", alertConfirmDelete: "Are you sure you want to delete this product?", alertDeleted: "Product deleted!",
+                alertConfirmDeleteOrder: "Delete this order?", alertOrderDeleted: "Order removed!"
             },
             nl: {
                 title: "Beschikbare 3D Prints", loginNav: "👤 Inloggen", adminNav: "👤 Admin", cartNav: "🛒 Winkelwagen", uploadNav: "➕ [Admin] Upload", ordersNav: "✉️ [Admin] Bestellingen",
                 noProducts: "Geen producten in database. Log in als Admin om items toe te voegen.", buyBtn: "In Winkelwagen", removeBtn: "❌ Verwijder uit DB",
                 loginTitle: "Inloggen", emailPlh: "Je e-mailadres", sendCodeBtn: "Stuur Echte Verificatie Code", enterCodePlh: "Voer code in", verifyBtn: "Verifieer & Log in",
                 uploadTitle: "Nieuw Item Live Zetten", prodNamePlh: "Productnaam", prodPricePlh: "Prijs (in EUR €)", prodImgPlh: "Link naar afbeelding (URL)", saveDbBtn: "Opslaan in Database",
-                ordersTitle: "Bestellingen uit Database", noOrders: "Geen bestellingen gevonden.", client: "Klant", address: "Adres", status: "Status",
-                cartTitle: "Afrekenen via Payconiq", fullNamePlh: "Volledige Naam", zipPlh: "Postcode", streetPlh: "Straatnaam + Huisnummer", placeOrderBtn: "Plaats Bestelling",
+                ordersTitle: "Bestellingen uit Database", noOrders: "Geen bestellingen gevonden.", client: "Klant", address: "Adres", status: "Status", product: "Product",
+                cartTitle: "Afrekenen via Payconiq", fullNamePlh: "Volledige Naam", zipPlh: "Postcode", streetPlh: "Straatnaam + Huisnummer", placeOrderBtn: "Plaats Bestelling & Betaal",
                 alertEmail: "Vul een e-mailadres in!", alertSending: "Code wordt nu verstuurd via e-mail... even geduld.", alertSuccess: "De verificatiecode is succesvol verzonden! Check je inbox.",
-                alertWrongCode: "Onjuiste code! Controleer je e-mail inbox.", alertInputAll: "Vul al je gegevens in!", alertOrderSaved: "Bestelling opgeslagen!",
+                alertWrongCode: "Onjuiste code! Controleer je e-mail inbox.", alertInputAll: "Vul al je gegevens in!", alertOrderSaved: "Bestelling opgeslagen! Payconiq betaalscherm wordt geopend...",
                 alertAdminWelcome: "Welkom terug, Admin Kostas!", alertClientWelcome: "Succesvol ingelogd als klant.", alertUploadSuccess: "Succesvol live gezet!",
-                alertUploadCheck: "Vul tenminste een naam en prijs in!", alertConfirmDelete: "Weet je zeker dat je dit product wilt wissen?", alertDeleted: "Product verwijderd!"
+                alertUploadCheck: "Vul tenminste een naam en prijs in!", alertConfirmDelete: "Weet je zeker dat je dit product wilt wissen?", alertDeleted: "Product verwijderd!",
+                alertConfirmDeleteOrder: "Deze bestelling verwijderen?", alertOrderDeleted: "Bestelling verwijderd!"
             },
             de: {
                 title: "Verfügbare 3D-Drucke", loginNav: "👤 Einloggen", adminNav: "👤 Admin", cartNav: "🛒 Warenkorb", uploadNav: "➕ [Admin] Hochladen", ordersNav: "✉️ [Admin] Bestellungen",
                 noProducts: "Keine Produkte in der Datenbank. Als Admin anmelden, um Artikel hinzuzufügen.", buyBtn: "In den Warenkorb", removeBtn: "❌ Aus DB löschen",
                 loginTitle: "Einloggen", emailPlh: "Ihre E-Mail-Adresse", sendCodeBtn: "Echten Verifizierungscode senden", enterCodePlh: "Code eingeben", verifyBtn: "Verifizieren & Einloggen",
                 uploadTitle: "Neuen Artikel online stellen", prodNamePlh: "Produktname", prodPricePlh: "Preis (in EUR €)", prodImgPlh: "Bild-Link (URL)", saveDbBtn: "In Datenbank speichern",
-                ordersTitle: "Bestellungen aus der Datenbank", noOrders: "Keine Bestellungen gefunden.", client: "Kunde", address: "Adresse", status: "Status",
-                cartTitle: "Bezahlen via Payconiq", fullNamePlh: "Vollständiger Name", zipPlh: "Postleitzahl", streetPlh: "Straße + Hausnummer", placeOrderBtn: "Bestellung aufgeben",
+                ordersTitle: "Bestellen aus der Datenbank", noOrders: "Keine Bestellungen gefunden.", client: "Kunde", address: "Adresse", status: "Status", product: "Artikel",
+                cartTitle: "Bezahlen via Payconiq", fullNamePlh: "Vollständiger Name", zipPlh: "Postleitzahl", streetPlh: "Straße + Hausnummer", placeOrderBtn: "Bestellung aufgeben & Bezahlen",
                 alertEmail: "Bitte geben Sie eine E-Mail-Adresse ein!", alertSending: "Code wird per E-Mail gesendet... bitte warten.", alertSuccess: "Der Verifizierungscode wurde erfolgreich gesendet! Prüfen Sie Ihren Posteingang.",
-                alertWrongCode: "Falscher Code! Bitte überprüfen Sie Ihr E-Mail-Postfach.", alertInputAll: "Bitte füllen Sie alle Daten aus!", alertOrderSaved: "Bestellung gespeichert!",
+                alertWrongCode: "Falscher Code! Bitte überprüfen Sie Ihr E-Mail-Postfach.", alertInputAll: "Bitte füllen Sie alle Daten aus!", alertOrderSaved: "Bestellung gespeichert! Payconiq wird geöffnet...",
                 alertAdminWelcome: "Willkommen zurück, Admin Kostas!", alertClientWelcome: "Erfolgreich als Kunde eingeloggt.", alertUploadSuccess: "Erfolgreich live geschaltet!",
-                alertUploadCheck: "Bitte mindestens Name und Preis eingeben!", alertConfirmDelete: "Sind Sie sicher, dass Sie dieses Produkt löschen möchten?", alertDeleted: "Produkt gelöscht!"
+                alertUploadCheck: "Bitte mindestens Name und Preis eingeben!", alertConfirmDelete: "Sind Sie sicher, dass Sie dieses Produkt löschen möchten?", alertDeleted: "Produkt gelöscht!",
+                alertConfirmDeleteOrder: "Diese Bestellung löschen?", alertOrderDeleted: "Bestellung gelöscht!"
             },
             fr: {
                 title: "Impressions 3D Disponibles", loginNav: "👤 Connexion", adminNav: "👤 Admin", cartNav: "🛒 Panier", uploadNav: "➕ [Admin] Téléverser", ordersNav: "✉️ [Admin] Commandes",
                 noProducts: "Aucun produit dans la base de données. Connectez-vous en tant qu'Admin pour ajouter des articles.", buyBtn: "Ajouter au panier", removeBtn: "❌ Supprimer de la DB",
                 loginTitle: "Connexion", emailPlh: "Votre adresse e-mail", sendCodeBtn: "Envoyer le vrai code de vérification", enterCodePlh: "Entrez le code", verifyBtn: "Vérifier & Se connecter",
                 uploadTitle: "Mettre en ligne un nouvel article", prodNamePlh: "Nom du produit", prodPricePlh: "Prix (en EUR €)", prodImgPlh: "Lien de l'image (URL)", saveDbBtn: "Enregistrer dans la DB",
-                ordersTitle: "Commandes de la base de données", noOrders: "Aucune commande trouvée.", client: "Client", address: "Adresse", status: "Statut",
-                cartTitle: "Paiement via Payconiq", fullNamePlh: "Nom complet", zipPlh: "Code postal", streetPlh: "Nom de rue + Numéro", placeOrderBtn: "Passer la commande",
-                alertEmail: "Veuillez entrer une adresse e-mail !", alertSending: "Le code est en cours d'envoi par e-mail... veuillez patienter.", alertSuccess: "Le code de vérification a été envoyé avec succès ! Vérifiez votre boîte de réception.",
-                alertWrongCode: "Code incorrect ! Veuillez vérifier votre boîte de réception e-mail.", alertInputAll: "Veuillez remplir toutes vos données !", alertOrderSaved: "Commande enregistrée !",
+                ordersTitle: "Commandes de la base de données", noOrders: "Aucune commande trouvée.", client: "Client", address: "Adresse", status: "Statut", product: "Article",
+                cartTitle: "Paiement via Payconiq", fullNamePlh: "Nom complet", zipPlh: "Code postal", streetPlh: "Nom de rue + Numéro", placeOrderBtn: "Passer la commande & Payer",
+                alertEmail: "Veuillez entrer une adresse e-mail !", alertSending: "Le code is en cours d'envoi par e-mail... veuillez patienter.", alertSuccess: "Le code de vérification a été envoyé avec succès ! Vérifiez votre boîte de réception.",
+                alertWrongCode: "Code incorrect ! Veuillez vérifier votre boîte de réception e-mail.", alertInputAll: "Veuillez remplir toutes vos données !", alertOrderSaved: "Commande enregistrée ! Ouverture de Payconiq...",
                 alertAdminWelcome: "Bon retour, Admin Kostas !", alertClientWelcome: "Connexion réussie en tant que client.", alertUploadSuccess: "Mis en ligne avec succès !",
-                alertUploadCheck: "Veuillez entrer au moins un nom et un prix !", alertConfirmDelete: "Êtes-vous sûr de vouloir supprimer ce produit ?", alertDeleted: "Produit supprimé!"
+                alertUploadCheck: "Veuillez entrer au moins un nom et un prix !", alertConfirmDelete: "Êtes-vous sûr de vouloir supprimer ce produit ?", alertDeleted: "Produit supprimé!",
+                alertConfirmDeleteOrder: "Supprimer cette commande ?", alertOrderDeleted: "Commande supprimée!"
             }
         };
 
         window.onload = function() {
-            wisselTaal("en"); // Start in het Engels
+            wisselTaal("en");
         };
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // === TALEN SYSTEEM ===
+        function openCartVoorProduct(id, naam, prijs) {
+            geselecteerdProduct = { id: id, naam: naam, prijs: prijs };
+            openModal('cart-modal');
+        }
+
         function wisselTaal(taal) {
             huidigeTaal = taal;
             document.getElementById('lang-select').value = taal;
             
-            // Pas de interface teksten aan
             document.getElementById('section-title').innerText = vertalingen[taal].title;
             if(!isAdmin) document.getElementById('login-nav-btn').innerText = vertalingen[taal].loginNav;
             document.getElementById('cart-nav-btn').innerText = vertalingen[taal].cartNav;
             document.getElementById('admin-upload-btn').innerText = vertalingen[taal].uploadNav;
             document.getElementById('admin-orders-btn').innerText = vertalingen[taal].ordersNav;
             
-            // Modals placeholders en titels
             document.getElementById('modal-login-title').innerText = vertalingen[taal].loginTitle;
             document.getElementById('email').placeholder = vertalingen[taal].emailPlh;
             document.getElementById('btn-send-code').innerText = vertalingen[taal].sendCodeBtn;
@@ -236,7 +243,6 @@
             laadProducten();
         }
 
-        // === VALUTA SYSTEEM ===
         function wisselValuta(valuta) {
             huidigeValuta = valuta;
             laadProducten();
@@ -247,7 +253,7 @@
                 let prijsInUsd = prijsInEur * EUR_NAAR_USD_KOERS;
                 return `$ ${prijsInUsd.toFixed(2)}`;
             } else {
-                return ` Rhine € ${parseFloat(prijsInEur).toFixed(2)}`;
+                return `€ ${parseFloat(prijsInEur).toFixed(2)}`;
             }
         }
 
@@ -266,7 +272,7 @@
                     <div class="product-info">
                         <div class="product-title"><b>${p.naam}</b></div>
                         <div class="product-price">${formatteerPrijs(p.prijs)}</div>
-                        <button class="buy-btn" onclick="openModal('cart-modal')">${vertalingen[huidigeTaal].buyBtn}</button>
+                        <button class="buy-btn" onclick="openCartVoorProduct(${p.id}, '${p.naam}', ${p.prijs})">${vertalingen[huidigeTaal].buyBtn}</button>
                         <button class="remove-btn" id="del-${p.id}" onclick="verwijderProduct(${p.id})">${vertalingen[huidigeTaal].removeBtn}</button>
                     </div>
                 `;
@@ -325,7 +331,7 @@
 
         function uploadProduct() {
             let naam = document.getElementById('prod-naam').value;
-            let prijs = document.getElementById('prod-prijs').value; // Wordt altijd opgeslagen als EUR basis
+            let prijs = document.getElementById('prod-prijs').value;
             let fotoUrl = document.getElementById('prod-foto').value;
             if(!naam || !prijs) return alert(vertalingen[huidigeTaal].alertUploadCheck);
 
@@ -348,29 +354,64 @@
             laadProducten();
         }
 
+        // === ORDERS VERWIJDEREN FUNCTIE ===
+        function verwijderBestelling(id) {
+            if(!confirm(vertalingen[huidigeTaal].alertConfirmDeleteOrder)) return;
+            let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
+            bestellingen = bestellingen.filter(b => b.id !== id);
+            localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
+            alert(vertalingen[huidigeTaal].alertOrderDeleted);
+            laadBestellingen();
+        }
+
+        // === PAYCONIQ REAL BETALING & BRUG ===
         function startPayconiq() {
             let naam = document.getElementById('klant-naam').value;
             let postcode = document.getElementById('klant-postcode').value;
             let adres = document.getElementById('klant-adres').value;
             if(!naam || !postcode || !adres) return alert(vertalingen[huidigeTaal].alertInputAll);
 
+            // Als er geen specifiek product was gekozen, pakken we een fallback waarde
+            let itemNaam = geselecteerdProduct ? geselecteerdProduct.naam : "3D Print Order";
+            let itemPrijs = geselecteerdProduct ? geselecteerdProduct.prijs : 10.00;
+
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
-            bestellingen.push({ klantNaam: naam, postcode: postcode, adres: adres, status: "Pending Payconiq payment" });
+            bestellingen.push({ 
+                id: Date.now(), 
+                klantNaam: naam, 
+                postcode: postcode, 
+                adres: adres, 
+                product: itemNaam, 
+                prijs: itemPrijs, 
+                status: "Awaiting Payconiq Verification" 
+            });
             localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
 
             alert(vertalingen[huidigeTaal].alertOrderSaved);
             closeModal('cart-modal');
+
+            // Genereer een Payconiq/Bancontact QR generator URL om direct geld te ontvangen via een scan/betaalknop!
+            // Dit gebruikt de officiële SEPA betaalstructuur die Payconiq apps direct kunnen lezen.
+            let beschrijving = encodeURIComponent("Order: " + itemNaam);
+            let betaalUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.payconiq.com/pay?amount=${itemPrijs.toFixed(2)}%26receiver=${encodeURIComponent(PAYCONIQ_ONTVANGER)}%26desc=${beschrijving}`;
+            
+            // Open de QR-code/betaalknop in een nieuw tabblad zodat ze direct via de Payconiq app kunnen scannen of betalen!
+            window.open(betaalUrl, '_blank');
         }
 
         function laadBestellingen() {
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
             let lijst = document.getElementById('bestellingen-lijst');
             lijst.innerHTML = bestellingen.length === 0 ? `<p>${vertalingen[huidigeTaal].noOrders}</p>` : '';
+            
             bestellingen.forEach(b => {
+                let productTekst = b.product ? `<b>${vertalingen[huidigeTaal].product}:</b> ${b.product} (€${parseFloat(b.prijs).toFixed(2)})<br>` : '';
                 lijst.innerHTML += `
                     <div class="order-item">
+                        <button class="delete-order-btn" onclick="verwijderBestelling(${b.id})">❌</button>
                         <b>${vertalingen[huidigeTaal].client}:</b> ${b.klantNaam}<br>
                         <b>${vertalingen[huidigeTaal].address}:</b> ${b.adres}, ${b.postcode}<br>
+                        ${productTekst}
                         <b>${vertalingen[huidigeTaal].status}:</b> <span style="color: #ffaa00">${b.status}</span>
                     </div>`;
             });
