@@ -111,7 +111,7 @@
         // === EMAILJS CONFIGURATIE ===
         const EMAILJS_PUBLIC_KEY = "nX-Rp_DkBYlLtAX-I"; 
         const EMAILJS_TEMPLATE_ID = "template_osvg32m";
-        const EMAILJS_SERVICE_ID = "HIER_JE_SERVICE_ID"; // Vervang dit door je service_xxxx van EmailJS
+        const EMAILJS_SERVICE_ID = "service_cb995gq"; 
 
         // Activeer EmailJS
         emailjs.init(EMAILJS_PUBLIC_KEY);
@@ -167,7 +167,7 @@
                     alert('De verificatiecode is succesvol verzonden naar ' + email + '!');
                 }, function(error) {
                     console.error('EmailJS Fout:', error);
-                    alert('Er ging iets mis. Controleer of je de HIER_JE_SERVICE_ID regel in het script hebt aangepast naar jouw Service ID.');
+                    alert('Er ging iets mis bij het versturen. Controleer je instellingen in EmailJS.');
                 });
         }
 
@@ -212,7 +212,6 @@
             document.getElementById('prod-naam').value = ''; document.getElementById('prod-prijs').value = ''; document.getElementById('prod-foto').value = '';
         }
 
-        // VERWIJDEREN WERKT LIVE OP GITHUB
         function verwijderProduct(id) {
             if(!confirm("Weet je zeker dat je dit product wilt wissen?")) return;
             let producten = JSON.parse(localStorage.getItem('ducklab_products')) || [];
