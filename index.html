@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Print Forge & Admin</title>
+    <!-- EmailJS bibliotheek inladen -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         :root {
             --primary: #00ffaa;
@@ -24,7 +26,6 @@
         .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; margin-top: 20px; }
         
-        /* Product kaart aangepast voor échte afbeeldingen */
         .product-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid #2a2a30; display: flex; flex-direction: column; }
         .product-img { width: 100%; height: 220px; object-fit: cover; background: #252529; }
         .product-info { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
@@ -39,7 +40,7 @@
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); }
         input { width: 100%; padding: 14px; background: #252529; border: 1px solid #3a3a42; color: white; border-radius: 8px; margin-bottom: 15px; }
         .submit-btn { width: 100%; background: #007bff; color: white; border: none; padding: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; }
-        .order-item { background: #252529; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); }
+        .order-item { background: #252529; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); color: white; text-align: left; }
     </style>
 </head>
 <body>
@@ -65,7 +66,7 @@
             <span class="close-btn" onclick="closeModal('auth-modal')">&times;</span>
             <h2>Inloggen</h2>
             <input type="email" id="email" placeholder="Je e-mailadres" required>
-            <button class="submit-btn" onclick="stuurLoginCode()">Send Verificatie Code</button>
+            <button class="submit-btn" onclick="stuurLoginCode()">Stuur Echte Verificatie Code</button>
             <div style="margin-top: 25px; border-top: 1px solid #3a3a42; padding-top: 20px;">
                 <input type="text" id="logincode" placeholder="Voer code in">
                 <button class="submit-btn" style="background: var(--primary); color: black;" onclick="verifieerCode()">Verifieer & Log in</button>
@@ -107,123 +108,146 @@
     </div>
 
     <script>
+        // === EMAILJS CONFIGURATIE ===
+        const EMAILJS_PUBLIC_KEY = "nX-Rp_DkBYlLtAX-I"; 
+        const EMAILJS_TEMPLATE_ID = "template_osvg32m";
+        const EMAILJS_SERVICE_ID = "HIER_JE_SERVICE_ID"; // Vervang dit door je service_xxxx van EmailJS
+
+        // Activeer EmailJS
+        emailjs.init(EMAILJS_PUBLIC_KEY);
+
         let isAdmin = false;
-        const backendUrl = "http://localhost:8080/api";
+        let gegenereerdeCode = null;
 
         window.onload = laadProducten;
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // 1. HAAL PRODUCTEN OP (Inclusief afbeeldingen!)
         function laadProducten() {
-            fetch(`${backendUrl}/products`)
-                .then(res => res.json())
-                .then(data => {
-                    let grid = document.getElementById('products-grid');
-                    grid.innerHTML = data.length === 0 ? '<p>Geen producten in database.</p>' : '';
-                    data.forEach(p => {
-                        let card = document.createElement('div');
-                        card.className = 'product-card';
-                        
-                        // Checken of er een afbeelding is meegegeven, anders fallback tekst
-                        let imageHtml = p.fotoUrl ? `<img src="${p.fotoUrl}" class="product-img" alt="${p.naam}">` : `<div class="product-img" style="display:flex; align-items:center; justify-content:center; color:var(--text-muted);">[ Geen Foto ]</div>`;
+            let producten = JSON.parse(localStorage.getItem('ducklab_products')) || [];
+            let grid = document.getElementById('products-grid');
+            grid.innerHTML = producten.length === 0 ? '<p>Geen producten in database. Log in als Admin om items toe te voegen.</p>' : '';
+            
+            producten.forEach(p => {
+                let card = document.createElement('div');
+                card.className = 'product-card';
+                let imageHtml = p.fotoUrl ? `<img src="${p.fotoUrl}" class="product-img" alt="${p.naam}">` : `<div class="product-img" style="display:flex; align-items:center; justify-content:center; color:var(--text-muted);">[ Geen Foto ]</div>`;
 
-                        card.innerHTML = `
-                            ${imageHtml}
-                            <div class="product-info">
-                                <div class="product-title"><b>${p.naam}</b></div>
-                                <div class="product-price">€ ${p.prijs.toFixed(2)}</div>
-                                <button class="buy-btn" onclick="openModal('cart-modal')">In Winkelwagen</button>
-                                <button class="remove-btn" id="del-${p.id}" onclick="verwijderProduct(${p.id})">❌ Verwijder uit DB</button>
-                            </div>
-                        `;
-                        grid.appendChild(card);
-                        if(isAdmin) document.getElementById(`del-${p.id}`).style.display = 'block';
-                    });
-                }).catch(() => {
-                    document.getElementById('products-grid').innerHTML = '<p>Backend offline (Simulatiemodus actief).</p>';
-                });
+                card.innerHTML = `
+                    ${imageHtml}
+                    <div class="product-info">
+                        <div class="product-title"><b>${p.naam}</b></div>
+                        <div class="product-price">€ ${parseFloat(p.prijs).toFixed(2)}</div>
+                        <button class="buy-btn" onclick="openModal('cart-modal')">In Winkelwagen</button>
+                        <button class="remove-btn" id="del-${p.id}" onclick="verwijderProduct(${p.id})">❌ Verwijder uit DB</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+                if(isAdmin) document.getElementById(`del-${p.id}`).style.display = 'block';
+            });
         }
 
-        // 2. EMAIL EN LOGIN
+        // VERSTUUR MET JE EIGEN CODES
         function stuurLoginCode() {
             let email = document.getElementById('email').value;
-            fetch(`${backendUrl}/auth/code?email=${email}`, { method: 'POST' })
-                .then(res => alert('Code is verstuurd! Check je mailbox.'))
-                .catch(() => alert('Backend offline. Gebruik code 123456 voor simulatie.'));
+            if(!email) return alert('Vul een e-mailadres in!');
+
+            gegenereerdeCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+            let templateParams = {
+                to_email: email,
+                code: gegenereerdeCode
+            };
+
+            alert('Code wordt nu verstuurd via e-mail... even geduld.');
+
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+                .then(function(response) {
+                    alert('De verificatiecode is succesvol verzonden naar ' + email + '!');
+                }, function(error) {
+                    console.error('EmailJS Fout:', error);
+                    alert('Er ging iets mis. Controleer of je de HIER_JE_SERVICE_ID regel in het script hebt aangepast naar jouw Service ID.');
+                });
         }
 
         function verifieerCode() {
             let email = document.getElementById('email').value;
-            let code = document.getElementById('logincode').value;
+            let ingevoerdeCode = document.getElementById('logincode').value;
 
-            if(email.toLowerCase() === "kostasnikora@gmail.com" && (code === "123456" || code)) {
-                isAdmin = true;
-                alert('Welkom terug, Admin Kostas!');
-                document.getElementById('admin-upload-btn').style.display = 'flex';
-                document.getElementById('admin-orders-btn').style.display = 'flex';
-                document.getElementById('login-nav-btn').innerText = '👤 Admin';
-                laadProducten();
-            } else {
-                alert('Ingelogd als klant.');
+            if(!gegenereerdeCode) {
+                return alert('Klik eerst op "Stuur Echte Verificatie Code"!');
             }
-            closeModal('auth-modal');
+
+            if(ingevoerdeCode === gegenereerdeCode) {
+                if(email.toLowerCase() === "kostasnikora@gmail.com") {
+                    isAdmin = true;
+                    alert('Welkom terug, Admin Kostas!');
+                    document.getElementById('admin-upload-btn').style.display = 'flex';
+                    document.getElementById('admin-orders-btn').style.display = 'flex';
+                    document.getElementById('login-nav-btn').innerText = '👤 Admin';
+                    laadProducten();
+                } else {
+                    alert('Succesvol ingelogd als klant.');
+                }
+                closeModal('auth-modal');
+            } else {
+                alert('Onjuiste code! Controleer je e-mail inbox.');
+            }
         }
 
-        // 3. PRODUCT EN FOTO LINK OPSLAAN IN DB
         function uploadProduct() {
             let naam = document.getElementById('prod-naam').value;
             let prijs = document.getElementById('prod-prijs').value;
             let fotoUrl = document.getElementById('prod-foto').value;
+            if(!naam || !prijs) return alert('Vul tenminste een naam en prijs in!');
 
-            fetch(`${backendUrl}/admin/upload?naam=${naam}&prijs=${prijs}&fotoUrl=${fotoUrl}`, { method: 'POST' })
-                .then(() => {
-                    alert('Succesvol opgeslagen in DB!');
-                    laadProducten();
-                    closeModal('upload-modal');
-                    // Reset inputs
-                    document.getElementById('prod-naam').value = '';
-                    document.getElementById('prod-prijs').value = '';
-                    document.getElementById('prod-foto').value = '';
-                });
+            let producten = JSON.parse(localStorage.getItem('ducklab_products')) || [];
+            producten.push({ id: Date.now(), naam: naam, prijs: parseFloat(prijs), fotoUrl: fotoUrl });
+            localStorage.setItem('ducklab_products', JSON.stringify(producten));
+
+            alert('Succesvol live gezet!');
+            laadProducten();
+            closeModal('upload-modal');
+            document.getElementById('prod-naam').value = ''; document.getElementById('prod-prijs').value = ''; document.getElementById('prod-foto').value = '';
         }
 
-        // 4. REMOVE
+        // VERWIJDEREN WERKT LIVE OP GITHUB
         function verwijderProduct(id) {
-            if(!confirm("Weet je zeker dat je dit product uit de database wilt wissen?")) return;
-            
-            fetch(`${backendUrl}/admin/product/${id}`, { method: 'DELETE' })
-                .then(() => {
-                    alert('Product is gewist!');
-                    laadProducten();
-                });
+            if(!confirm("Weet je zeker dat je dit product wilt wissen?")) return;
+            let producten = JSON.parse(localStorage.getItem('ducklab_products')) || [];
+            producten = producten.filter(p => p.id !== id);
+            localStorage.setItem('ducklab_products', JSON.stringify(producten));
+            alert('Product verwijderd!');
+            laadProducten();
         }
 
-        // 5. BESTELLINGEN
         function startPayconiq() {
             let naam = document.getElementById('klant-naam').value;
             let postcode = document.getElementById('klant-postcode').value;
             let adres = document.getElementById('klant-adres').value;
+            if(!naam || !postcode || !adres) return alert('Vul al je gegevens in!');
 
-            fetch(`${backendUrl}/checkout/payconiq?naam=${naam}&postcode=${postcode}&adres=${adres}`, { method: 'POST' })
-                .then(() => {
-                    alert('Bestelling opgeslagen!');
-                    closeModal('cart-modal');
-                });
+            let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
+            bestellingen.push({ klantNaam: naam, postcode: postcode, adres: adres, status: "Wacht op Payconiq betaling" });
+            localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
+
+            alert('Bestelling opgeslagen!');
+            closeModal('cart-modal');
         }
 
         function laadBestellingen() {
-            let email = document.getElementById('email').value;
-            fetch(`${backendUrl}/admin/bestellingen?email=${email}`)
-                .then(res => res.json())
-                .then(data => {
-                    let lijst = document.getElementById('bestellingen-lijst');
-                    lijst.innerHTML = data.length === 0 ? '<p>Geen bestellingen gevonden.</p>' : '';
-                    data.forEach(b => {
-                        lijst.innerHTML += `<div class="order-item"><b>Klant:</b> ${b.klantNaam}<br><b>Adres:</b> ${b.adres}, ${b.postcode}<br><b>Status:</b> ${b.status}</div>`;
-                    });
-                });
+            let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
+            let lijst = document.getElementById('bestellingen-lijst');
+            lijst.innerHTML = bestellingen.length === 0 ? '<p>Geen bestellingen gevonden.</p>' : '';
+            bestellingen.forEach(b => {
+                lijst.innerHTML += `
+                    <div class="order-item">
+                        <b>Klant:</b> ${b.klantNaam}<br>
+                        <b>Adres:</b> ${b.adres}, ${b.postcode}<br>
+                        <b>Status:</b> <span style="color: #ffaa00">${b.status}</span>
+                    </div>`;
+            });
         }
     </script>
 </body>
