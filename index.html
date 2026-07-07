@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DuckLab Studio</title>
-    <!-- EmailJS bibliotheek inladen -->
+    <!-- EmailJS Library -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         :root {
-            --primary: #f3ca13; /* DuckLab Geel */
+            --primary: #f3ca13; /* DuckLab Yellow */
             --primary-dark: #ccaa0e;
             --bg-light: #f8f9fa;
             --card-bg: #ffffff;
@@ -20,7 +20,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { background-color: var(--bg-light); color: var(--text-main); padding-bottom: 60px; }
         
-        /* Navigatie zoals de screenshots */
+        /* Navigation Bar */
         nav { background-color: #ffffff; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; }
         .logo-container { display: flex; align-items: center; gap: 10px; }
         .logo-text { font-size: 22px; font-weight: 800; color: #000; letter-spacing: -0.5px; text-transform: uppercase; }
@@ -30,40 +30,49 @@
         .cart-badge { position: absolute; top: -2px; right: -2px; background: #000; color: #fff; font-size: 11px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .admin-only { display: none; background: #000; color: #fff; font-size: 12px; font-weight: bold; padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; }
 
-        /* Banner */
+        /* Top Banner */
         .hero-banner { background: #000; color: #fff; text-align: center; padding: 12px; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; }
 
-        /* Grid lay-out gebaseerd op de screenshots */
+        /* Product Grid Layout */
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
         .section-title { font-size: 28px; font-weight: 700; }
         
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
         
-        /* Professionele Product Card */
+        /* Premium Product Card */
         .product-card { background: var(--card-bg); border-radius: 0px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; position: relative; }
         .product-card:hover { transform: translateY(-4px); }
         .product-img-wrapper { width: 100%; height: 280px; background: #f0f0f2; overflow: hidden; position: relative; }
         .product-img { width: 100%; height: 100%; object-fit: cover; }
         .product-info { padding: 15px 5px; display: flex; flex-direction: column; flex-grow: 1; }
-        .product-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #1a1a1a; line-height: 1.4; text-decoration: none; }
+        .product-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #1a1a1a; line-height: 1.4; }
         .product-price { color: #000; font-size: 16px; font-weight: 700; margin-bottom: 15px; }
         
-        /* Knoppen in Shopify-stijl */
+        /* Shopify Style Buttons */
         .buy-btn { width: 100%; background: #000; color: #fff; border: none; padding: 14px; font-weight: 600; font-size: 14px; border-radius: 4px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; margin-top: auto; transition: background 0.2s; }
         .buy-btn:hover { background: #222; }
         .remove-btn { background: #ff3366; color: white; border: none; padding: 8px; width: 100%; margin-top: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; display: none; }
         
-        /* Modals & Cart panel aan de rechterkant */
+        /* Modals & Popups */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .hidden { display: none !important; }
-        .modal-content { background: #fff; padding: 30px; border-radius: 8px; width: 100%; max-width: 450px; position: relative; border: 1px solid var(--border-color); }
+        .modal-content { background: #fff; padding: 30px; border-radius: 8px; width: 100%; max-width: 480px; position: relative; border: 1px solid var(--border-color); }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); }
         
         input, select { width: 100%; padding: 14px; background: #fff; border: 1px solid #ccc; color: #000; border-radius: 4px; margin-bottom: 15px; font-size: 15px; }
         .submit-btn { width: 100%; background: #000; color: #fff; border: none; padding: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
         
-        /* Settings Selector */
+        /* Shopping Cart Row Elements */
+        .cart-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); gap: 10px; }
+        .cart-item-info { flex-grow: 1; }
+        .cart-item-title { font-weight: 600; font-size: 14px; }
+        .cart-item-price { font-size: 14px; color: var(--text-muted); }
+        .cart-qty-input { width: 50px; padding: 6px; margin-bottom: 0; text-align: center; border-radius: 4px; border: 1px solid #ccc; }
+        .cart-remove-item { background: none; border: none; color: #ff3366; cursor: pointer; font-size: 16px; font-weight: bold; padding: 0 5px; }
+        .cart-total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin: 20px 0; padding-top: 10px; border-top: 2px solid #000; }
+        
+        /* Settings Currency Select */
         .settings-select { width: auto; margin-bottom: 0; padding: 6px 10px; font-size: 13px; background: #fff; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; }
     </style>
 </head>
@@ -81,7 +90,7 @@
                 <option value="USD">USD $</option>
             </select>
             <button class="nav-btn" onclick="openModal('auth-modal')">👤</button>
-            <button class="nav-btn" onclick="openModal('cart-modal')">🛒 <span class="cart-badge" id="cart-count">0</span></button>
+            <button class="nav-btn" onclick="openModal('cart-modal'); updateCartUI();">🛒 <span class="cart-badge" id="cart-count">0</span></button>
             <button class="admin-only" id="admin-upload-btn" onclick="openModal('upload-modal')">➕ Upload Item</button>
             <button class="admin-only" id="admin-orders-btn" onclick="laadBestellingen(); openModal('orders-modal')">✉️ Orders</button>
         </div>
@@ -89,7 +98,7 @@
 
     <div class="container">
         <div class="section-header">
-            <h2 class="section-title" id="section-title">Products</h2>
+            <h2 class="section-title">Products</h2>
         </div>
         <div class="grid" id="products-grid"></div>
     </div>
@@ -98,12 +107,12 @@
     <div id="auth-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('auth-modal')">&times;</span>
-            <h2>Inloggen</h2>
-            <input type="email" id="email" placeholder="Je e-mailadres" required>
-            <button class="submit-btn" id="btn-send-code" onclick="stuurLoginCode()">Stuur Verificatie Code</button>
+            <h2>Sign In</h2>
+            <input type="email" id="email" placeholder="Your email address" required>
+            <button class="submit-btn" id="btn-send-code" onclick="stuurLoginCode()">Send Verification Code</button>
             <div style="margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                <input type="text" id="logincode" placeholder="Voer code in">
-                <button class="submit-btn" id="btn-verify-code" style="background: var(--primary); color: black;" onclick="verifieerCode()">Verifieer & Log in</button>
+                <input type="text" id="logincode" placeholder="Enter 6-digit code">
+                <button class="submit-btn" id="btn-verify-code" style="background: var(--primary); color: black;" onclick="verifieerCode()">Verify & Log In</button>
             </div>
         </div>
     </div>
@@ -112,11 +121,11 @@
     <div id="upload-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('upload-modal')">&times;</span>
-            <h2>Nieuw Item Toevoegen</h2>
-            <input type="text" id="prod-naam" placeholder="Productnaam">
-            <input type="number" id="prod-prijs" placeholder="Prijs (in EUR €)" step="0.01">
-            <input type="text" id="prod-foto" placeholder="Link naar productafbeelding (URL)">
-            <button class="submit-btn" style="background: var(--primary); color: black;" onclick="uploadProduct()">Live zetten</button>
+            <h2>Add New Item To Database</h2>
+            <input type="text" id="prod-naam" placeholder="Product Name">
+            <input type="number" id="prod-prijs" placeholder="Price (in EUR €)" step="0.01">
+            <input type="text" id="prod-foto" placeholder="Image Link (URL URL)">
+            <button class="submit-btn" style="background: var(--primary); color: black;" onclick="uploadProduct()">Put Product Live</button>
         </div>
     </div>
 
@@ -124,21 +133,32 @@
     <div id="orders-modal" class="modal hidden">
         <div class="modal-content" style="max-width: 600px;">
             <span class="close-btn" onclick="closeModal('orders-modal')">&times;</span>
-            <h2>Binnengekomen Bestellingen</h2>
+            <h2>Incoming Orders Database</h2>
             <div id="bestellingen-lijst" style="margin-top: 20px; max-height: 400px; overflow-y: auto;"></div>
         </div>
     </div>
 
-    <!-- WINKELWAGEN MODAL -->
+    <!-- SHOPPING CART / CHECKOUT MODAL -->
     <div id="cart-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-            <h2>Afrekenen (Payconiq)</h2>
-            <div id="cart-checkout-details" style="margin-bottom: 15px; font-weight: bold;"></div>
-            <input type="text" id="klant-naam" placeholder="Volledige Naam">
-            <input type="text" id="klant-postcode" placeholder="Postcode">
-            <input type="text" id="klant-adres" placeholder="Straatnaam + Huisnummer">
-            <button class="submit-btn" id="btn-place-order" style="background: #10b981; color: white;" onclick="startPayconiq()">Bestellen & Betalen</button>
+            <h2>Your Shopping Cart</h2>
+            
+            <!-- Cart Items Holder -->
+            <div id="cart-items-list" style="margin-top: 15px; max-height: 240px; overflow-y: auto;">
+                <!-- Filled dynamically by JavaScript -->
+            </div>
+            
+            <div class="cart-total-row">
+                <span>Total:</span>
+                <span id="cart-total-price">€ 0.00</span>
+            </div>
+
+            <h3 style="margin-bottom: 10px; font-size: 16px;">Shipping Details</h3>
+            <input type="text" id="klant-naam" placeholder="Full Name">
+            <input type="text" id="klant-postcode" placeholder="Postal Code">
+            <input type="text" id="klant-adres" placeholder="Streetname + House Number">
+            <button class="submit-btn" id="btn-place-order" style="background: #10b981; color: white;" onclick="startPayconiqCheckout()">Checkout & Pay via Payconiq</button>
         </div>
     </div>
 
@@ -152,11 +172,13 @@
 
         let isAdmin = false;
         let gegenereerdeCode = null;
-        let geselecteerdProduct = null;
         let huidigeValuta = "EUR";
         const EUR_NAAR_USD_KOERS = 1.09;
 
-        // Dit zijn de standaard items die ALTIJD voor iedereen zichtbaar zijn (zoals op je screenshots!)
+        // Multi-item Shopping Cart Array
+        let winkelwagen = [];
+
+        // Core dynamic content (Visible everywhere, syncs automatically)
         const STANDAARD_PRODUCTEN = [
             { id: 1, naam: "10 Piece Mystery Fidget Box | 3D Printed Fidget Toy Set", prijs: 20.00, fotoUrl: "https://placehold.co/600x600/f0f0f2/000000?text=10+Piece+Fidget+Box" },
             { id: 2, naam: "25 Piece Mystery Fidget Box | 3D Printed Sensory Bundle", prijs: 50.00, fotoUrl: "https://placehold.co/600x600/f0f0f2/000000?text=25+Piece+Mystery+Box" },
@@ -168,21 +190,90 @@
                 localStorage.setItem('ducklab_products', JSON.stringify(STANDAARD_PRODUCTEN));
             }
             laadProducten();
+            updateCartCountUI();
         };
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        function openCartVoorProduct(id, naam, prijs) {
-            geselecteerdProduct = { id: id, naam: naam, prijs: prijs };
-            document.getElementById('cart-checkout-details').innerText = `${naam} — ${formatteerPrijs(prijs)}`;
-            document.getElementById('cart-count').innerText = "1";
-            openModal('cart-modal');
+        // --- SHOPPING CART CORE LOGIC ---
+        function voegToeAanWinkelwagen(id, naam, prijs) {
+            let bestaandItem = winkelwagen.find(item => item.id === id);
+            
+            if (bestaandItem) {
+                bestaandItem.aantal += 1;
+            } else {
+                winkelwagen.push({ id: id, naam: naam, prijs: prijs, aantal: 1 });
+            }
+            
+            updateCartCountUI();
+            
+            // Subtle feedback animation on cart button
+            let cartBtn = document.querySelector("button[onclick*='cart-modal']");
+            cartBtn.style.transform = "scale(1.2)";
+            setTimeout(() => { cartBtn.style.transform = "scale(1)"; }, 200);
+        }
+
+        function veranderAantal(id, nieuwAantal) {
+            let aantal = parseInt(nieuwAantal);
+            if (aantal <= 0 || isNaN(aantal)) {
+                verwijderUitWinkelwagen(id);
+                return;
+            }
+            let item = winkelwagen.find(item => item.id === id);
+            if (item) item.aantal = aantal;
+            updateCartUI();
+            updateCartCountUI();
+        }
+
+        function verwijderUitWinkelwagen(id) {
+            winkelwagen = winkelwagen.filter(item => item.id !== id);
+            updateCartUI();
+            updateCartCountUI();
+        }
+
+        function updateCartCountUI() {
+            let totaalArtikelen = winkelwagen.reduce((totaal, item) => totaal + item.aantal, 0);
+            document.getElementById('cart-count').innerText = totaalArtikelen;
+        }
+
+        function updateCartUI() {
+            let lijstHTML = document.getElementById('cart-items-list');
+            lijstHTML.innerHTML = '';
+            
+            if (winkelwagen.length === 0) {
+                lijstHTML.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0;">Your shopping cart is completely empty.</p>';
+                document.getElementById('cart-total-price').innerText = formatteerPrijs(0);
+                return;
+            }
+
+            let totaalPrijsEur = 0;
+
+            winkelwagen.forEach(item => {
+                let itemTotaalPrijs = item.prijs * item.aantal;
+                totaalPrijsEur += itemTotaalPrijs;
+
+                lijstHTML.innerHTML += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-title">${item.naam}</div>
+                            <div class="cart-item-price">${formatteerPrijs(item.prijs)}</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="number" class="cart-qty-input" value="${item.aantal}" min="1" onchange="veranderAantal(${item.id}, this.value)">
+                            <button class="cart-remove-item" onclick="verwijderUitWinkelwagen(${item.id})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('cart-total-price').innerText = formatteerPrijs(totaalPrijsEur);
         }
 
         function wisselValuta(valuta) {
             huidigeValuta = valuta;
             laadProducten();
+            updateCartUI();
         }
 
         function formatteerPrijs(prijsInEur) {
@@ -210,8 +301,8 @@
                     <div class="product-info">
                         <div class="product-title">${p.naam}</div>
                         <div class="product-price">${formatteerPrijs(p.prijs)}</div>
-                        <button class="buy-btn" onclick="openCartVoorProduct(${p.id}, '${p.naam}', ${p.prijs})">Add to cart</button>
-                        <button class="remove-btn" id="del-${p.id}" onclick="verwijderProduct(${p.id})">❌ Verwijderen</button>
+                        <button class="buy-btn" onclick="voegToeAanWinkelwagen(${p.id}, '${p.naam}', ${p.prijs})">Add to cart</button>
+                        <button class="remove-btn" id="del-${p.id}" onclick="verwijderProduct(${p.id})">❌ Remove Product</button>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -232,14 +323,14 @@
                 code: gegenereerdeCode
             };
 
-            btn.innerText = "⏳ Verzenden...";
+            btn.innerText = "⏳ Sending Code...";
             btn.disabled = true;
 
             emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
                 .then(function() {
-                    btn.innerText = "✅ Code verzonden!";
+                    btn.innerText = "✅ Code Sent!";
                 }, function(error) {
-                    btn.innerText = "❌ Fout!";
+                    btn.innerText = "❌ Error!";
                     console.error(error);
                 });
         }
@@ -251,16 +342,16 @@
             if(ingevoerdeCode === gegenereerdeCode) {
                 if(email.toLowerCase() === "kostasnikora@gmail.com") {
                     isAdmin = true;
-                    alert("Welkom terug, Admin Kostas!");
+                    alert("Welcome back, Admin Kostas!");
                     document.getElementById('admin-upload-btn').style.display = 'inline-block';
                     document.getElementById('admin-orders-btn').style.display = 'inline-block';
                     laadProducten();
                 } else {
-                    alert("Succesvol ingelogd!");
+                    alert("Successfully logged in!");
                 }
                 closeModal('auth-modal');
             } else {
-                alert("Onjuiste code!");
+                alert("Incorrect code! Please retry.");
             }
         }
 
@@ -285,29 +376,53 @@
             laadProducten();
         }
 
-        function startPayconiq() {
+        function startPayconiqCheckout() {
             let naam = document.getElementById('klant-naam').value;
             let postcode = document.getElementById('klant-postcode').value;
             let adres = document.getElementById('klant-adres').value;
-            if(!naam || !postcode || !adres) return alert("Vul alles in!");
+            
+            if(winkelwagen.length === 0) return alert("Your cart is empty!");
+            if(!naam || !postcode || !adres) return alert("Please fill in all shipping details!");
+
+            // Calculate total and compile items text line
+            let totaalPrijs = winkelwagen.reduce((totaal, item) => totaal + (item.prijs * item.aantal), 0);
+            let itemsOmschrijving = winkelwagen.map(item => `${item.aantal}x ${item.naam}`).join(', ');
 
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
-            bestellingen.push({ id: Date.now(), klantNaam: naam, postcode: postcode, adres: adres, product: geselecteerdProduct.naam, prijs: geselecteerdProduct.prijs, status: "Awaiting Payment" });
+            bestellingen.push({ 
+                id: Date.now(), 
+                klantNaam: naam, 
+                postcode: postcode, 
+                adres: adres, 
+                product: itemsOmschrijving, 
+                prijs: totaalPrijs, 
+                status: "Awaiting Payconiq Verification" 
+            });
             localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
 
-            let betaalUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.payconiq.com/pay?amount=${geselecteerdProduct.prijs.toFixed(2)}%26receiver=${encodeURIComponent(PAYCONIQ_ONTVANGER)}`;
+            // Generate Payconiq QR
+            let betaalUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.payconiq.com/pay?amount=${totaalPrijs.toFixed(2)}%26receiver=${encodeURIComponent(PAYCONIQ_ONTVANGER)}`;
             window.open(betaalUrl, '_blank');
+            
+            // Clear cart upon successful forward
+            winkelwagen = [];
+            updateCartCountUI();
             closeModal('cart-modal');
+            alert("Order placed! Payconiq window has opened.");
         }
 
         function laadBestellingen() {
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
             let lijst = document.getElementById('bestellingen-lijst');
-            lijst.innerHTML = bestellingen.length === 0 ? '<p>Geen bestellingen gevonden.</p>' : '';
+            lijst.innerHTML = bestellingen.length === 0 ? '<p>No orders found in database.</p>' : '';
             
             bestellingen.forEach(b => {
-                lijst.innerHTML += `<div style="background:#f0f0f2; padding:10px; margin-bottom:10px; border-radius:4px;">
-                    <b>Klant:</b> ${b.klantNaam}<br><b>Adres:</b> ${b.adres}<br><b>Item:</b> ${b.product}<br><b>Status:</b> ${b.status}
+                lijst.innerHTML += `<div style="background:#f0f0f2; padding:12px; margin-bottom:10px; border-radius:4px; font-size:14px; border-left:4px solid var(--primary);">
+                    <b>Client:</b> ${b.klantNaam}<br>
+                    <b>Address:</b> ${b.adres}, ${b.postcode}<br>
+                    <b>Items:</b> ${b.product}<br>
+                    <b>Total Price:</b> € ${parseFloat(b.prijs).toFixed(2)}<br>
+                    <b>Status:</b> <span style="color:#d97706; font-weight:bold;">${b.status}</span>
                 </div>`;
             });
         }
