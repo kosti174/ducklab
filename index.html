@@ -68,7 +68,7 @@
         .cart-item-info { flex-grow: 1; }
         .cart-item-title { font-weight: 600; font-size: 14px; }
         .cart-item-price { font-size: 14px; color: var(--text-muted); }
-        .cart-qty-input { width: 50px; padding: 6px; margin-bottom: 0; text-align: center; border-radius: 4px; border: 1px solid #ccc; }
+        .cart-qty-input { width: 60px; padding: 6px; margin-bottom: 0; text-align: center; border-radius: 4px; border: 1px solid #ccc; }
         .cart-remove-item { background: none; border: none; color: #ff3366; cursor: pointer; font-size: 16px; font-weight: bold; padding: 0 5px; }
         .cart-total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin: 20px 0; padding-top: 10px; border-top: 2px solid #000; }
         
@@ -85,14 +85,14 @@
             <span class="logo-text">🦆 DuckLab Studio</span>
         </div>
         <div class="nav-links">
-            <select id="currency-select" class="settings-select" onchange="wisselValuta(this.value)">
+            <select id="currency-select" class="settings-select" onchange="changeCurrency(this.value)">
                 <option value="EUR">EUR €</option>
                 <option value="USD">USD $</option>
             </select>
             <button class="nav-btn" onclick="openModal('auth-modal')">👤</button>
-            <button class="nav-btn" onclick="openModal('cart-modal'); updateCartUI();">🛒 <span class="cart-badge" id="cart-count">0</span></button>
+            <button class="nav-btn" onclick="openModal('cart-modal'); renderCartUI();">🛒 <span class="cart-badge" id="cart-count">0</span></button>
             <button class="admin-only" id="admin-upload-btn" onclick="openModal('upload-modal')">➕ Upload Item</button>
-            <button class="admin-only" id="admin-orders-btn" onclick="laadBestellingen(); openModal('orders-modal')">✉️ Orders</button>
+            <button class="admin-only" id="admin-orders-btn" onclick="loadOrders(); openModal('orders-modal')">✉️ Orders</button>
         </div>
     </nav>
 
@@ -109,10 +109,10 @@
             <span class="close-btn" onclick="closeModal('auth-modal')">&times;</span>
             <h2>Sign In</h2>
             <input type="email" id="email" placeholder="Your email address" required>
-            <button class="submit-btn" id="btn-send-code" onclick="stuurLoginCode()">Send Verification Code</button>
+            <button class="submit-btn" id="btn-send-code" onclick="sendLoginCode()">Send Verification Code</button>
             <div style="margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px;">
                 <input type="text" id="logincode" placeholder="Enter 6-digit code">
-                <button class="submit-btn" id="btn-verify-code" style="background: var(--primary); color: black;" onclick="verifieerCode()">Verify & Log In</button>
+                <button class="submit-btn" id="btn-verify-code" style="background: var(--primary); color: black;" onclick="verifyCode()">Verify & Log In</button>
             </div>
         </div>
     </div>
@@ -121,10 +121,10 @@
     <div id="upload-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('upload-modal')">&times;</span>
-            <h2>Add New Item To Database</h2>
+            <h2>Add New Item</h2>
             <input type="text" id="prod-naam" placeholder="Product Name">
             <input type="number" id="prod-prijs" placeholder="Price (in EUR €)" step="0.01">
-            <input type="text" id="prod-foto" placeholder="Image Link (URL URL)">
+            <input type="text" id="prod-foto" placeholder="Image Link (URL)">
             <button class="submit-btn" style="background: var(--primary); color: black;" onclick="uploadProduct()">Put Product Live</button>
         </div>
     </div>
@@ -175,10 +175,9 @@
         let huidigeValuta = "EUR";
         const EUR_NAAR_USD_KOERS = 1.09;
 
-        // Multi-item Shopping Cart Array
+        // Shopping Cart Array
         let winkelwagen = [];
 
-        // Core dynamic content (Visible everywhere, syncs automatically)
         const STANDAARD_PRODUCTEN = [
             { id: 1, naam: "10 Piece Mystery Fidget Box | 3D Printed Fidget Toy Set", prijs: 20.00, fotoUrl: "https://placehold.co/600x600/f0f0f2/000000?text=10+Piece+Fidget+Box" },
             { id: 2, naam: "25 Piece Mystery Fidget Box | 3D Printed Sensory Bundle", prijs: 50.00, fotoUrl: "https://placehold.co/600x600/f0f0f2/000000?text=25+Piece+Mystery+Box" },
@@ -189,7 +188,7 @@
             if (!localStorage.getItem('ducklab_products')) {
                 localStorage.setItem('ducklab_products', JSON.stringify(STANDAARD_PRODUCTEN));
             }
-            laadProducten();
+            loadProducts();
             updateCartCountUI();
         };
 
@@ -197,7 +196,7 @@
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         // --- SHOPPING CART CORE LOGIC ---
-        function voegToeAanWinkelwagen(id, naam, prijs) {
+        function addToCart(id, naam, prijs) {
             let bestaandItem = winkelwagen.find(item => item.id === id);
             
             if (bestaandItem) {
@@ -208,27 +207,26 @@
             
             updateCartCountUI();
             
-            // Subtle feedback animation on cart button
             let cartBtn = document.querySelector("button[onclick*='cart-modal']");
             cartBtn.style.transform = "scale(1.2)";
             setTimeout(() => { cartBtn.style.transform = "scale(1)"; }, 200);
         }
 
-        function veranderAantal(id, nieuwAantal) {
+        function changeQuantity(id, nieuwAantal) {
             let aantal = parseInt(nieuwAantal);
             if (aantal <= 0 || isNaN(aantal)) {
-                verwijderUitWinkelwagen(id);
+                removeFromCart(id);
                 return;
             }
             let item = winkelwagen.find(item => item.id === id);
             if (item) item.aantal = aantal;
-            updateCartUI();
+            renderCartUI();
             updateCartCountUI();
         }
 
-        function verwijderUitWinkelwagen(id) {
+        function removeFromCart(id) {
             winkelwagen = winkelwagen.filter(item => item.id !== id);
-            updateCartUI();
+            renderCartUI();
             updateCartCountUI();
         }
 
@@ -237,46 +235,45 @@
             document.getElementById('cart-count').innerText = totaalArtikelen;
         }
 
-        function updateCartUI() {
+        function renderCartUI() {
             let lijstHTML = document.getElementById('cart-items-list');
             lijstHTML.innerHTML = '';
             
             if (winkelwagen.length === 0) {
-                lijstHTML.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0;">Your shopping cart is completely empty.</p>';
-                document.getElementById('cart-total-price').innerText = formatteerPrijs(0);
+                lijstHTML.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0;">Your shopping cart is empty.</p>';
+                document.getElementById('cart-total-price').innerText = formatPrice(0);
                 return;
             }
 
             let totaalPrijsEur = 0;
 
             winkelwagen.forEach(item => {
-                let itemTotaalPrijs = item.prijs * item.aantal;
-                totaalPrijsEur += itemTotaalPrijs;
+                totaalPrijsEur += (item.prijs * item.aantal);
 
                 lijstHTML.innerHTML += `
                     <div class="cart-item">
                         <div class="cart-item-info">
                             <div class="cart-item-title">${item.naam}</div>
-                            <div class="cart-item-price">${formatteerPrijs(item.prijs)}</div>
+                            <div class="cart-item-price">${formatPrice(item.prijs)}</div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="number" class="cart-qty-input" value="${item.aantal}" min="1" onchange="veranderAantal(${item.id}, this.value)">
-                            <button class="cart-remove-item" onclick="verwijderUitWinkelwagen(${item.id})">🗑️</button>
+                            <input type="number" class="cart-qty-input" value="${item.aantal}" min="1" onchange="changeQuantity(${item.id}, this.value)">
+                            <button class="cart-remove-item" onclick="removeFromCart(${item.id})">🗑️</button>
                         </div>
                     </div>
                 `;
             });
 
-            document.getElementById('cart-total-price').innerText = formatteerPrijs(totaalPrijsEur);
+            document.getElementById('cart-total-price').innerText = formatPrice(totaalPrijsEur);
         }
 
-        function wisselValuta(valuta) {
+        function changeCurrency(valuta) {
             huidigeValuta = valuta;
-            laadProducten();
-            updateCartUI();
+            loadProducts();
+            renderCartUI();
         }
 
-        function formatteerPrijs(prijsInEur) {
+        function formatPrice(prijsInEur) {
             if (huidigeValuta === "USD") {
                 return `$ ${(prijsInEur * EUR_NAAR_USD_KOERS).toFixed(2)} USD`;
             } else {
@@ -284,7 +281,7 @@
             }
         }
 
-        function laadProducten() {
+        function loadProducts() {
             let producten = JSON.parse(localStorage.getItem('ducklab_products')) || STANDAARD_PRODUCTEN;
             let grid = document.getElementById('products-grid');
             grid.innerHTML = '';
@@ -300,9 +297,9 @@
                     </div>
                     <div class="product-info">
                         <div class="product-title">${p.naam}</div>
-                        <div class="product-price">${formatteerPrijs(p.prijs)}</div>
-                        <button class="buy-btn" onclick="voegToeAanWinkelwagen(${p.id}, '${p.naam}', ${p.prijs})">Add to cart</button>
-                        <button class="remove-btn" id="del-${p.id}" onclick="verwijderProduct(${p.id})">❌ Remove Product</button>
+                        <div class="product-price">${formatPrice(p.prijs)}</div>
+                        <button class="buy-btn" onclick="addToCart(${p.id}, '${p.naam}', ${p.prijs})">Add to cart</button>
+                        <button class="remove-btn" id="del-${p.id}" onclick="deleteProduct(${p.id})">❌ Remove Product</button>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -310,10 +307,10 @@
             });
         }
 
-        function stuurLoginCode() {
+        function sendLoginCode() {
             let emailadres = document.getElementById('email').value.trim();
             let btn = document.getElementById('btn-send-code');
-            if(!emailadres.includes('@')) return;
+            if(!emailadres.includes('@')) return alert("Enter a valid email!");
 
             gegenereerdeCode = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -335,7 +332,7 @@
                 });
         }
 
-        function verifieerCode() {
+        function verifyCode() {
             let email = document.getElementById('email').value;
             let ingevoerdeCode = document.getElementById('logincode').value;
 
@@ -345,7 +342,7 @@
                     alert("Welcome back, Admin Kostas!");
                     document.getElementById('admin-upload-btn').style.display = 'inline-block';
                     document.getElementById('admin-orders-btn').style.display = 'inline-block';
-                    laadProducten();
+                    loadProducts();
                 } else {
                     alert("Successfully logged in!");
                 }
@@ -359,21 +356,21 @@
             let naam = document.getElementById('prod-naam').value;
             let prijs = document.getElementById('prod-prijs').value;
             let fotoUrl = document.getElementById('prod-foto').value;
-            if(!naam || !prijs) return;
+            if(!naam || !prijs) return alert("Please enter name and price!");
 
             let producten = JSON.parse(localStorage.getItem('ducklab_products')) || STANDAARD_PRODUCTEN;
             producten.push({ id: Date.now(), naam: naam, prijs: parseFloat(prijs), fotoUrl: fotoUrl });
             localStorage.setItem('ducklab_products', JSON.stringify(producten));
 
-            laadProducten();
+            loadProducts();
             closeModal('upload-modal');
         }
 
-        function verwijderProduct(id) {
+        function deleteProduct(id) {
             let producten = JSON.parse(localStorage.getItem('ducklab_products')) || STANDAARD_PRODUCTEN;
             producten = producten.filter(p => p.id !== id);
             localStorage.setItem('ducklab_products', JSON.stringify(producten));
-            laadProducten();
+            loadProducts();
         }
 
         function startPayconiqCheckout() {
@@ -384,7 +381,6 @@
             if(winkelwagen.length === 0) return alert("Your cart is empty!");
             if(!naam || !postcode || !adres) return alert("Please fill in all shipping details!");
 
-            // Calculate total and compile items text line
             let totaalPrijs = winkelwagen.reduce((totaal, item) => totaal + (item.prijs * item.aantal), 0);
             let itemsOmschrijving = winkelwagen.map(item => `${item.aantal}x ${item.naam}`).join(', ');
 
@@ -400,18 +396,16 @@
             });
             localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
 
-            // Generate Payconiq QR
             let betaalUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.payconiq.com/pay?amount=${totaalPrijs.toFixed(2)}%26receiver=${encodeURIComponent(PAYCONIQ_ONTVANGER)}`;
             window.open(betaalUrl, '_blank');
             
-            // Clear cart upon successful forward
             winkelwagen = [];
             updateCartCountUI();
             closeModal('cart-modal');
             alert("Order placed! Payconiq window has opened.");
         }
 
-        function laadBestellingen() {
+        function loadOrders() {
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
             let lijst = document.getElementById('bestellingen-lijst');
             lijst.innerHTML = bestellingen.length === 0 ? '<p>No orders found in database.</p>' : '';
