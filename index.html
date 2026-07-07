@@ -1,440 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DuckLab Studio</title>
-    <!-- EmailJS Library -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <!-- Officiële Google Library voor de echte account-popup -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <style>
-        :root {
-            --primary: #f3ca13; /* DuckLab Yellow */
-            --primary-dark: #ccaa0e;
-            --bg-light: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-main: #1a1a1a;
-            --text-muted: #6c757d;
-            --border-color: #e4e7eb;
-        }
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-        body { background-color: var(--bg-light); color: var(--text-main); padding-bottom: 60px; }
-        
-        /* Navigation Bar - DuckLab Yellow */
-        nav { background-color: var(--primary); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; position: sticky; top: 0; z-index: 100; }
-        .logo-container { display: flex; align-items: center; gap: 10px; }
-        .logo-text { font-size: 22px; font-weight: 800; color: #000; letter-spacing: -0.5px; text-transform: uppercase; }
-        .nav-links { display: flex; gap: 15px; align-items: center; }
-        .nav-btn { background: none; border: none; color: #000; font-size: 20px; cursor: pointer; padding: 8px; border-radius: 5px; position: relative; }
-        .nav-btn:hover { background: rgba(0,0,0,0.05); }
-        .cart-badge { position: absolute; top: -2px; right: -2px; background: #000; color: #fff; font-size: 11px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .admin-only { display: none; background: #000; color: #fff; font-size: 12px; font-weight: bold; padding: 8px 14px; border-radius: 4px; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
-        .admin-only:hover { background: #222; }
-
-        /* Top Banner */
-        .hero-banner { background: #000; color: #fff; text-align: center; padding: 12px; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; }
-
-        /* Product Grid Layout */
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
-        .section-title { font-size: 28px; font-weight: 700; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
-        
-        /* Product Card */
-        .product-card { background: var(--card-bg); border-radius: 0px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; position: relative; border: 1px solid var(--border-color); }
-        .product-card:hover { transform: translateY(-4px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .product-img-wrapper { width: 100%; height: 280px; background: #f0f0f2; overflow: hidden; position: relative; }
-        .product-img { width: 100%; height: 100%; object-fit: cover; }
-        .product-info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
-        .product-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #1a1a1a; line-height: 1.4; }
-        .product-price { color: #000; font-size: 16px; font-weight: 700; margin-bottom: 15px; }
-        
-        .buy-btn { width: 100%; background: #000; color: #fff; border: none; padding: 14px; font-weight: 600; font-size: 14px; border-radius: 4px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; margin-top: auto; transition: background 0.2s; }
-        .buy-btn:hover { background: var(--primary); color: #000; }
-        .remove-btn { background: #ff3366; color: white; border: none; padding: 10px; width: 100%; margin-top: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; display: none; text-transform: uppercase; font-size: 12px; }
-        
-        /* Modals & Popups */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .hidden { display: none !important; }
-        .modal-content { background: #fff; padding: 30px; border-radius: 8px; width: 100%; max-width: 450px; position: relative; border: 1px solid var(--border-color); }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); }
-        
-        input, select { width: 100%; padding: 14px; background: #fff; border: 1px solid #ccc; color: #000; border-radius: 4px; margin-bottom: 15px; font-size: 15px; }
-        .submit-btn { width: 100%; background: #000; color: #fff; border: none; padding: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
-        
-        /* Social Buttons Styles */
-        .social-btn { width: 100%; padding: 14px; border-radius: 4px; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; margin-bottom: 12px; transition: background 0.2s; border: 1px solid #e4e7eb; }
-        .google-btn { background: #ffffff; color: #3c4043; }
-        .google-btn:hover { background: #f8f9fa; }
-        .apple-btn { background: #000000; color: #ffffff; border: none; }
-        .apple-btn:hover { background: #222222; }
-        .social-icon { width: 18px; height: 18px; }
-
-        /* Shopping Cart Row Elements */
-        .cart-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); gap: 10px; }
-        .cart-item-info { flex-grow: 1; }
-        .cart-item-title { font-weight: 600; font-size: 14px; }
-        .cart-item-price { font-size: 14px; color: var(--text-muted); }
-        .cart-qty-input { width: 60px; padding: 6px; margin-bottom: 0; text-align: center; border-radius: 4px; border: 1px solid #ccc; }
-        .cart-remove-item { background: none; border: none; color: #ff3366; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .cart-total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin: 20px 0; padding-top: 10px; border-top: 2px solid #000; }
-        
-        .settings-select { width: auto; margin-bottom: 0; padding: 6px 10px; font-size: 13px; background: #fff; border: 1px solid #000; border-radius: 4px; cursor: pointer; font-weight: 600; }
-        .order-delete-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 12px; text-transform: uppercase; }
-        .order-delete-btn:hover { background: #dc2626; }
-    </style>
-</head>
-<body>
-
-    <div class="hero-banner">DESIGN. PRINT. CREATE. — DUCKLAB STUDIO SHOP</div>
-
-    <nav>
-        <div class="logo-container">
-            <span class="logo-text">🦆 DuckLab Studio</span>
-        </div>
-        <div class="nav-links">
-            <select id="currency-select" class="settings-select" onchange="changeCurrency(this.value)">
-                <option value="EUR">EUR €</option>
-                <option value="USD">USD $</option>
-            </select>
-            <button class="nav-btn" onclick="openModal('auth-modal')">👤</button>
-            <button class="nav-btn" onclick="openModal('cart-modal'); renderCartUI();">🛒 <span class="cart-badge" id="cart-count">0</span></button>
-            <button class="admin-only" id="admin-upload-btn" onclick="openModal('upload-modal')">➕ Upload Item</button>
-            <button class="admin-only" id="admin-orders-btn" onclick="loadOrders(); openModal('orders-modal')">✉️ Orders</button>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div class="section-header">
-            <h2 class="section-title">Products</h2>
-        </div>
-        <div class="grid" id="products-grid"></div>
-    </div>
-
-    <!-- MAIN INLOG MODAL MET CODES -->
-    <div id="auth-modal" class="modal hidden">
-        <div class="modal-content" style="text-align: center;">
-            <span class="close-btn" onclick="closeModal('auth-modal')">&times;</span>
-            <h2 style="margin-bottom: 15px;">Sign In</h2>
-            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Choose a method to continue securely.</p>
-            
-            <!-- Google Button (Triggert nu de echte browser/device popup) -->
-            <button class="social-btn google-btn" onclick="triggerEchteGooglePopup()">
-                <svg class="social-icon" viewBox="0 0 24 24">
-                    <path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.33 0 3.353 2.693 1.455 6.618l3.81 3.147z"/>
-                    <path fill="#4285F4" d="M16.04 15.345c-1.012.678-2.34 1.082-4.04 1.082-2.934 0-5.43-1.99-6.319-4.664L1.87 14.89C3.782 18.79 7.803 21.5 12 21.5c2.936 0 5.618-1.027 7.655-2.791l-3.614-3.364z"/>
-                    <path fill="#FBBC05" d="M5.682 11.764a6.917 6.917 0 0 1 0-2.436L1.872 6.181a11.91 11.91 0 0 0 0 8.727l3.81-3.144z"/>
-                    <path fill="#34A853" d="M23.49 12.275c0-.646-.057-1.353-.18-1.996H12v4.164h6.51c-.31 1.636-1.245 2.818-2.473 3.618l3.615 3.364c2.114-1.955 3.837-5.145 3.837-9.15z"/>
-                </svg>
-                Continue with Google
-            </button>
-
-            <!-- Apple Button -->
-            <button class="social-btn apple-btn" onclick="alert('Apple Sign In simulation active.')">
-                <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.21.67-2.93 1.49-.62.69-1.16 1.84-1.01 2.96 1.12.09 2.27-.58 2.95-1.39z"/>
-                </svg>
-                Sign in with Apple
-            </button>
+<!-- Gebruik deze sectie in je code om je accounts te tonen -->
+<div class="account-list">
+    <!-- Kostas -->
+    <div class="account-item" onclick="selectGoogleAccount('kostasnikora@gmail.com')">
+        <div class="account-avatar" style="background: #e65100;">K</div>
+        <div class="account-details">
+            <span class="account-name">Kostas</span>
+            <span class="account-email">kostasnikora@gmail.com</span>
         </div>
     </div>
 
-    <!-- Onzichtbare container die Google nodig heeft om op de achtergrond te draaien -->
-    <div id="google-hidden-engine" style="display: none;"></div>
-
-    <!-- UPLOAD MODAL -->
-    <div id="upload-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('upload-modal')">&times;</span>
-            <h2>Add New Item</h2>
-            <input type="text" id="prod-naam" placeholder="Product Name">
-            <input type="number" id="prod-prijs" placeholder="Price (in EUR €)" step="0.01">
-            <input type="text" id="prod-foto" placeholder="Image Link (URL)">
-            <button class="submit-btn" onclick="uploadProduct()">Put Product Live</button>
+    <!-- 30 Abonnees -->
+    <div class="account-item" onclick="selectGoogleAccount('abonnees10@gmail.com')">
+        <div class="account-avatar" style="background: #00796b;">30</div>
+        <div class="account-details">
+            <span class="account-name">30 Abonnees</span>
+            <span class="account-email">abonnees10@gmail.com</span>
         </div>
     </div>
 
-    <!-- ORDERS MODAL -->
-    <div id="orders-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 600px;">
-            <span class="close-btn" onclick="closeModal('orders-modal')">&times;</span>
-            <h2>Incoming Orders Database</h2>
-            <div id="bestellingen-lijst" style="margin-top: 20px; max-height: 400px; overflow-y: auto;"></div>
+    <!-- hbdd -->
+    <div class="account-item" onclick="selectGoogleAccount('funparkbot@gmail.com')">
+        <div class="account-avatar" style="background: #5d4037;">h</div>
+        <div class="account-details">
+            <span class="account-name">hbdd</span>
+            <span class="account-email">funparkbot@gmail.com</span>
         </div>
     </div>
 
-    <!-- SHOPPING CART / CHECKOUT MODAL -->
-    <div id="cart-modal" class="modal hidden">
-        <div class="modal-content" id="cart-modal-body"></div>
+    <!-- Scheetje -->
+    <div class="account-item" onclick="selectGoogleAccount('scheetje52@gmail.com')">
+        <div class="account-avatar" style="background: #004d40;">S</div>
+        <div class="account-details">
+            <span class="account-name">Scheetje</span>
+            <span class="account-email">scheetje52@gmail.com</span>
+        </div>
     </div>
 
-    <script>
-        const EMAILJS_PUBLIC_KEY = "nX-Rp_DkBYlLtAX-I"; 
-        const EMAILJS_TEMPLATE_ID = "template_osvg32m";
-        const EMAILJS_SERVICE_ID = "service_cb995gq"; 
-        const PAYCONIQ_ONTVANGER = "kostasnikora@gmail.com"; 
+    <!-- Konstantinos Ramoutsakis -->
+    <div class="account-item" onclick="selectGoogleAccount('konstantinos.ramouts@donboscohelchteren.be')">
+        <div class="account-avatar" style="background: #7b1fa2;">K</div>
+        <div class="account-details">
+            <span class="account-name">Konstantinos Ramoutsakis</span>
+            <span class="account-email">konstantinos.ramouts@donboscohelchteren.be</span>
+        </div>
+        <span style="font-size: 11px; color:#757575; margin-left: auto; align-self: center;">Uitgelogd</span>
+    </div>
 
-        emailjs.init(EMAILJS_PUBLIC_KEY);
-
-        let isAdmin = false;
-        let huidigeValuta = "EUR";
-        const EUR_NAAR_USD_KOERS = 1.09;
-        let winkelwagen = [];
-
-        const STANDAARD_PRODUCTEN = [
-            { id: 1, naam: "10 Piece Mystery Fidget Box | 3D Printed Fidget Toy Set", prijs: 20.00, fotoUrl: "https://placehold.co/600x600/f0f0f2/000000?text=10+Piece+Fidget+Box" },
-            { id: 2, naam: "25 Piece Mystery Fidget Box | 3D Printed Sensory Bundle", prijs: 50.00, fotoUrl: "https://placehold.co/600x600/f0f0f2/000000?text=25+Piece+Mystery+Box" },
-            { id: 3, naam: "Personalized Baseball Gear Holder | Custom Fence Clip", prijs: 35.00, fotoUrl: "https://placehold.co/600x600/f0f0f2/000000?text=Baseball+Holder" }
-        ];
-
-        window.onload = function() {
-            if (!localStorage.getItem('ducklab_products')) {
-                localStorage.setItem('ducklab_products', JSON.stringify(STANDAARD_PRODUCTEN));
-            }
-            loadProducts();
-            updateCartCountUI();
-            initGoogleAuthEngine();
-        };
-
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-        // --- ECHTE GOOGLE POPUP CODES ---
-        function initGoogleAuthEngine() {
-            try {
-                google.accounts.id.initialize({
-                    client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com", // Hier komt je Google Client ID als je live gaat
-                    callback: verwerkGoogleInlog
-                });
-            } catch(e) { console.log("Google library laadt op de achtergrond."); }
-        }
-
-        function triggerEchteGooglePopup() {
-            // Dit roept de echte Google account-kiezer op die alle opgeslagen accounts van het device laat zien
-            let mockEmail = prompt("Google Account Selector\nKies een account dat is opgeslagen op uw device:", "kostasnikora@gmail.com");
-            if (mockEmail) {
-                verwerkGoogleInlog({ email: mockEmail.trim() });
-            }
-        }
-
-        function verwerkGoogleInlog(response) {
-            let gekozenEmail = response.email || "bezoeker@gmail.com";
-            closeModal('auth-modal');
-
-            if(gekozenEmail.toLowerCase() === "kostasnikora@gmail.com") {
-                isAdmin = true;
-                alert("Succesvol ingelogd via Google account!\nWelkom terug, Admin Kostas.");
-                document.getElementById('admin-upload-btn').style.display = 'inline-block';
-                document.getElementById('admin-orders-btn').style.display = 'inline-block';
-                loadProducts();
-            } else {
-                alert(`Succesvol ingelogd als klant met: ${gekozenEmail}`);
-                isAdmin = false;
-                document.getElementById('admin-upload-btn').style.display = 'none';
-                document.getElementById('admin-orders-btn').style.display = 'none';
-                loadProducts();
-            }
-        }
-
-        function addToCart(id, naam, prijs) {
-            let bestaandItem = winkelwagen.find(item => item.id === id);
-            if (bestaandItem) {
-                bestaandItem.aantal += 1;
-            } else {
-                winkelwagen.push({ id: id, naam: naam, prijs: prijs, aantal: 1 });
-            }
-            updateCartCountUI();
-        }
-
-        function changeQuantity(id, nieuwAantal) {
-            let aantal = parseInt(nieuwAantal);
-            if (aantal <= 0 || isNaN(aantal)) {
-                removeFromCart(id);
-                return;
-            }
-            let item = winkelwagen.find(item => item.id === id);
-            if (item) item.aantal = aantal;
-            renderCartUI();
-            updateCartCountUI();
-        }
-
-        function removeFromCart(id) {
-            winkelwagen = winkelwagen.filter(item => item.id !== id);
-            renderCartUI();
-            updateCartCountUI();
-        }
-
-        function updateCartCountUI() {
-            let totaalArtikelen = winkelwagen.reduce((totaal, item) => totaal + item.aantal, 0);
-            document.getElementById('cart-count').innerText = totaalArtikelen;
-        }
-
-        function renderCartUI() {
-            let modalBody = document.getElementById('cart-modal-body');
-            
-            if (winkelwagen.length === 0) {
-                modalBody.innerHTML = `
-                    <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-                    <div style="text-align: center; padding: 40px 10px;">
-                        <h2 style="margin-bottom: 10px;">Your cart is empty</h2>
-                        <button class="buy-btn" style="width: auto; padding: 10px 25px;" onclick="closeModal('cart-modal')">Continue shopping</button>
-                    </div>
-                `;
-                return;
-            }
-
-            let itemsHTML = '';
-            let totaalPrijsEur = 0;
-
-            winkelwagen.forEach(item => {
-                totaalPrijsEur += (item.prijs * item.aantal);
-                itemsHTML += `
-                    <div class="cart-item">
-                        <div class="cart-item-info">
-                            <div class="cart-item-title">${item.naam}</div>
-                            <div class="cart-item-price">${formatPrice(item.prijs)}</div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="number" class="cart-qty-input" value="${item.aantal}" min="1" onchange="changeQuantity(${item.id}, this.value)">
-                            <button class="cart-remove-item" onclick="removeFromCart(${item.id})">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            modalBody.innerHTML = `
-                <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-                <h2>Your Shopping Cart</h2>
-                <div style="margin-top: 15px; max-height: 240px; overflow-y: auto;">
-                    ${itemsHTML}
-                </div>
-                <div class="cart-total-row">
-                    <span>Total:</span>
-                    <span>${formatPrice(totaalPrijsEur)}</span>
-                </div>
-                <h3 style="margin-bottom: 10px; font-size: 16px;">Shipping Details</h3>
-                <input type="text" id="klant-naam" placeholder="Full Name">
-                <input type="text" id="klant-postcode" placeholder="Postal Code">
-                <input type="text" id="klant-adres" placeholder="Streetname + House Number">
-                <button class="submit-btn" onclick="startPayconiqCheckout()">Checkout & Pay via Payconiq</button>
-            `;
-        }
-
-        function changeCurrency(valuta) {
-            huidigeValuta = valuta;
-            loadProducts();
-            renderCartUI();
-        }
-
-        function formatPrice(prijsInEur) {
-            if (huidigeValuta === "USD") {
-                return `$ ${(prijsInEur * EUR_NAAR_USD_KOERS).toFixed(2)} USD`;
-            } else {
-                return `€ ${parseFloat(prijsInEur).toFixed(2)} EUR`;
-            }
-        }
-
-        function loadProducts() {
-            let producten = JSON.parse(localStorage.getItem('ducklab_products')) || STANDAARD_PRODUCTEN;
-            let grid = document.getElementById('products-grid');
-            grid.innerHTML = '';
-            
-            producten.forEach(p => {
-                let card = document.createElement('div');
-                card.className = 'product-card';
-                let foto = p.fotoUrl || "https://placehold.co/600x600/f0f0f2/000000?text=DuckLab+Studio";
-
-                card.innerHTML = `
-                    <div class="product-img-wrapper">
-                        <img src="${foto}" class="product-img" alt="${p.naam}">
-                    </div>
-                    <div class="product-info">
-                        <div class="product-title">${p.naam}</div>
-                        <div class="product-price">${formatPrice(p.prijs)}</div>
-                        <button class="buy-btn" onclick="addToCart(${p.id}, '${p.naam}', ${p.prijs})">Add to cart</button>
-                        <button class="remove-btn" id="del-${p.id}" onclick="deleteProduct(${p.id})">❌ Remove Product</button>
-                    </div>
-                `;
-                grid.appendChild(card);
-                if(isAdmin) document.getElementById(`del-${p.id}`).style.display = 'block';
-            });
-        }
-
-        function uploadProduct() {
-            let naam = document.getElementById('prod-naam').value;
-            let prijs = document.getElementById('prod-prijs').value;
-            let fotoUrl = document.getElementById('prod-foto').value;
-            if(!naam || !prijs) return alert("Please fill in name and price!");
-
-            let producten = JSON.parse(localStorage.getItem('ducklab_products')) || STANDAARD_PRODUCTEN;
-            producten.push({ id: Date.now(), naam: naam, prijs: parseFloat(prijs), fotoUrl: fotoUrl });
-            localStorage.setItem('ducklab_products', JSON.stringify(producten));
-
-            loadProducts();
-            closeModal('upload-modal');
-        }
-
-        function deleteProduct(id) {
-            let producten = JSON.parse(localStorage.getItem('ducklab_products')) || STANDAARD_PRODUCTEN;
-            producten = producten.filter(p => p.id !== id);
-            localStorage.setItem('ducklab_products', JSON.stringify(producten));
-            loadProducts();
-        }
-
-        function startPayconiqCheckout() {
-            let naam = document.getElementById('klant-naam').value;
-            let postcode = document.getElementById('klant-postcode').value;
-            let adres = document.getElementById('klant-adres').value;
-            
-            if(winkelwagen.length === 0) return alert("Your cart is empty!");
-            if(!naam || !postcode || !adres) return alert("Please fill in shipping details!");
-
-            let totaalPrijs = winkelwagen.reduce((totaal, item) => totaal + (item.prijs * item.aantal), 0);
-            let itemsOmschrijving = winkelwagen.map(item => `${item.aantal}x ${item.naam}`).join(', ');
-
-            let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
-            bestellingen.push({ 
-                id: Date.now(), klantNaam: naam, postcode: postcode, adres: adres, product: itemsOmschrijving, prijs: totaalPrijs, status: "Awaiting Payconiq Verification" 
-            });
-            localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
-
-            let betaalUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.payconiq.com/pay?amount=${totaalPrijs.toFixed(2)}%26receiver=${encodeURIComponent(PAYCONIQ_ONTVANGER)}`;
-            window.open(betaalUrl, '_blank');
-            
-            winkelwagen = [];
-            updateCartCountUI();
-            closeModal('cart-modal');
-            alert("Order placed! Payconiq QR-code generated.");
-        }
-
-        function loadOrders() {
-            let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
-            let lijst = document.getElementById('bestellingen-lijst');
-            lijst.innerHTML = bestellingen.length === 0 ? '<p>No orders found.</p>' : '';
-            
-            bestellingen.forEach(b => {
-                lijst.innerHTML += `
-                <div style="background:#f0f0f2; padding:15px; margin-bottom:12px; border-radius:6px; font-size:14px; border-left:5px solid #000;">
-                    <b>Client:</b> ${b.klantNaam}<br>
-                    <b>Address:</b> ${b.adres}, ${b.postcode}<br>
-                    <b>Items:</b> ${b.product}<br>
-                    <b>Total:</b> € ${parseFloat(b.prijs).toFixed(2)}<br>
-                    <button class="order-delete-btn" onclick="deleteOrder(${b.id})">🗑️ Delete Order</button>
-                </div>`;
-            });
-        }
-
-        function deleteOrder(id) {
-            if(confirm("Permanently delete this order?")) {
-                let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
-                bestellingen = bestellingen.filter(b => b.id !== id);
-                localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
-                loadOrders();
-            }
-        }
-    </script>
-</body>
-</html>
+    <!-- Een ander account gebruiken -->
+    <div class="account-item" onclick="alert('Voeg hier je logica toe voor een nieuw account')">
+        <div class="account-avatar" style="background: transparent; border: 1px solid #ccc; color: #5f6368;">👤</div>
+        <div class="account-details" style="justify-content: center;">
+            <span class="account-name" style="font-weight: 500; color: #1a73e8;">Een ander account gebruiken</span>
+        </div>
+    </div>
+</div>
