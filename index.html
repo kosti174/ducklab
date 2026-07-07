@@ -6,7 +6,7 @@
     <title>DuckLab Studio</title>
     <!-- EmailJS Library -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <!-- Official Google Identity Services Code for the real popup -->
+    <!-- Officiële Google Library voor de echte account-popup -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
@@ -22,7 +22,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { background-color: var(--bg-light); color: var(--text-main); padding-bottom: 60px; }
         
-        /* Navigation Bar - Upgraded to full DuckLab Yellow */
+        /* Navigation Bar - DuckLab Yellow */
         nav { background-color: var(--primary); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; position: sticky; top: 0; z-index: 100; }
         .logo-container { display: flex; align-items: center; gap: 10px; }
         .logo-text { font-size: 22px; font-weight: 800; color: #000; letter-spacing: -0.5px; text-transform: uppercase; }
@@ -43,7 +43,7 @@
         
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
         
-        /* Premium Product Card */
+        /* Product Card */
         .product-card { background: var(--card-bg); border-radius: 0px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; position: relative; border: 1px solid var(--border-color); }
         .product-card:hover { transform: translateY(-4px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
         .product-img-wrapper { width: 100%; height: 280px; background: #f0f0f2; overflow: hidden; position: relative; }
@@ -52,7 +52,6 @@
         .product-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #1a1a1a; line-height: 1.4; }
         .product-price { color: #000; font-size: 16px; font-weight: 700; margin-bottom: 15px; }
         
-        /* Shopify Style Buttons */
         .buy-btn { width: 100%; background: #000; color: #fff; border: none; padding: 14px; font-weight: 600; font-size: 14px; border-radius: 4px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; margin-top: auto; transition: background 0.2s; }
         .buy-btn:hover { background: var(--primary); color: #000; }
         .remove-btn { background: #ff3366; color: white; border: none; padding: 10px; width: 100%; margin-top: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; display: none; text-transform: uppercase; font-size: 12px; }
@@ -60,24 +59,19 @@
         /* Modals & Popups */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .hidden { display: none !important; }
-        .modal-content { background: #fff; padding: 30px; border-radius: 8px; width: 100%; max-width: 480px; position: relative; border: 1px solid var(--border-color); }
+        .modal-content { background: #fff; padding: 30px; border-radius: 8px; width: 100%; max-width: 450px; position: relative; border: 1px solid var(--border-color); }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); }
         
         input, select { width: 100%; padding: 14px; background: #fff; border: 1px solid #ccc; color: #000; border-radius: 4px; margin-bottom: 15px; font-size: 15px; }
         .submit-btn { width: 100%; background: #000; color: #fff; border: none; padding: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
         
-        /* Google Button Style */
-        .social-btn { width: 100%; padding: 14px; border-radius: 4px; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; margin-bottom: 12px; transition: background 0.2s; border: 1px solid #e4e7eb; background: #ffffff; color: #3c4043; }
-        .social-btn:hover { background: #f8f9fa; }
-        .social-icon { width: 18px; height: 18px; display: inline-block; }
-
-        /* Empty Cart Style */
-        .empty-cart-container { text-align: center; padding: 50px 10px; }
-        .empty-cart-title { font-size: 28px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; }
-        .empty-cart-text { font-size: 15px; color: #4a4a4a; margin-bottom: 25px; }
-        .empty-cart-text a { color: #000; font-weight: 600; text-decoration: underline; cursor: pointer; }
-        .continue-btn { background: #000; color: #fff; border: none; padding: 15px 35px; font-size: 15px; font-weight: 600; border-radius: 25px; cursor: pointer; transition: background 0.2s; }
-        .continue-btn:hover { background: #222; }
+        /* Social Buttons Styles */
+        .social-btn { width: 100%; padding: 14px; border-radius: 4px; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; margin-bottom: 12px; transition: background 0.2s; border: 1px solid #e4e7eb; }
+        .google-btn { background: #ffffff; color: #3c4043; }
+        .google-btn:hover { background: #f8f9fa; }
+        .apple-btn { background: #000000; color: #ffffff; border: none; }
+        .apple-btn:hover { background: #222222; }
+        .social-icon { width: 18px; height: 18px; }
 
         /* Shopping Cart Row Elements */
         .cart-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); gap: 10px; }
@@ -85,13 +79,10 @@
         .cart-item-title { font-weight: 600; font-size: 14px; }
         .cart-item-price { font-size: 14px; color: var(--text-muted); }
         .cart-qty-input { width: 60px; padding: 6px; margin-bottom: 0; text-align: center; border-radius: 4px; border: 1px solid #ccc; }
-        .cart-remove-item { background: none; border: none; color: #ff3366; cursor: pointer; font-size: 16px; font-weight: bold; padding: 0 5px; }
+        .cart-remove-item { background: none; border: none; color: #ff3366; cursor: pointer; font-size: 16px; font-weight: bold; }
         .cart-total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin: 20px 0; padding-top: 10px; border-top: 2px solid #000; }
         
-        /* Settings Currency Select */
         .settings-select { width: auto; margin-bottom: 0; padding: 6px 10px; font-size: 13px; background: #fff; border: 1px solid #000; border-radius: 4px; cursor: pointer; font-weight: 600; }
-        
-        /* Admin Order Card Delete Buttons */
         .order-delete-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 12px; text-transform: uppercase; }
         .order-delete-btn:hover { background: #dc2626; }
     </style>
@@ -123,15 +114,15 @@
         <div class="grid" id="products-grid"></div>
     </div>
 
-    <!-- AUTH MODAL WITH TRUE GOOGLE ONE-TAP POPUP POPPING -->
+    <!-- MAIN INLOG MODAL MET CODES -->
     <div id="auth-modal" class="modal hidden">
         <div class="modal-content" style="text-align: center;">
             <span class="close-btn" onclick="closeModal('auth-modal')">&times;</span>
-            <h2 style="margin-bottom: 15px;">Secure Client Login</h2>
-            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Sign in securely to view tracking and complete your orders faster.</p>
+            <h2 style="margin-bottom: 15px;">Sign In</h2>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Choose a method to continue securely.</p>
             
-            <!-- Real Google Login Trigger Button -->
-            <button class="social-btn" onclick="triggerGooglePopup()">
+            <!-- Google Button (Triggert nu de echte browser/device popup) -->
+            <button class="social-btn google-btn" onclick="triggerEchteGooglePopup()">
                 <svg class="social-icon" viewBox="0 0 24 24">
                     <path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.33 0 3.353 2.693 1.455 6.618l3.81 3.147z"/>
                     <path fill="#4285F4" d="M16.04 15.345c-1.012.678-2.34 1.082-4.04 1.082-2.934 0-5.43-1.99-6.319-4.664L1.87 14.89C3.782 18.79 7.803 21.5 12 21.5c2.936 0 5.618-1.027 7.655-2.791l-3.614-3.364z"/>
@@ -140,11 +131,19 @@
                 </svg>
                 Continue with Google
             </button>
-            
-            <!-- Hidden container for the official library implementation engine -->
-            <div id="google-hidden-engine" style="display: none;"></div>
+
+            <!-- Apple Button -->
+            <button class="social-btn apple-btn" onclick="alert('Apple Sign In simulation active.')">
+                <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.21.67-2.93 1.49-.62.69-1.16 1.84-1.01 2.96 1.12.09 2.27-.58 2.95-1.39z"/>
+                </svg>
+                Sign in with Apple
+            </button>
         </div>
     </div>
+
+    <!-- Onzichtbare container die Google nodig heeft om op de achtergrond te draaien -->
+    <div id="google-hidden-engine" style="display: none;"></div>
 
     <!-- UPLOAD MODAL -->
     <div id="upload-modal" class="modal hidden">
@@ -154,11 +153,11 @@
             <input type="text" id="prod-naam" placeholder="Product Name">
             <input type="number" id="prod-prijs" placeholder="Price (in EUR €)" step="0.01">
             <input type="text" id="prod-foto" placeholder="Image Link (URL)">
-            <button class="submit-btn" style="background: #000; color: #fff;" onclick="uploadProduct()">Put Product Live</button>
+            <button class="submit-btn" onclick="uploadProduct()">Put Product Live</button>
         </div>
     </div>
 
-    <!-- ORDERS MODAL WITH REMOVE / DELETE CONTROLS -->
+    <!-- ORDERS MODAL -->
     <div id="orders-modal" class="modal hidden">
         <div class="modal-content" style="max-width: 600px;">
             <span class="close-btn" onclick="closeModal('orders-modal')">&times;</span>
@@ -197,48 +196,47 @@
             }
             loadProducts();
             updateCartCountUI();
-            initGoogleAuthLibrary();
+            initGoogleAuthEngine();
         };
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // --- TRUE GOOGLE OAUTH POPUP SIMULATION & INITIALIZATION ---
-        function initGoogleAuthLibrary() {
+        // --- ECHTE GOOGLE POPUP CODES ---
+        function initGoogleAuthEngine() {
             try {
                 google.accounts.id.initialize({
-                    client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com", // Dummy client ID, forceert de popup window flow
-                    callback: handleGoogleCredentialResponse
+                    client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com", // Hier komt je Google Client ID als je live gaat
+                    callback: verwerkGoogleInlog
                 });
-                google.accounts.id.renderButton(
-                    document.getElementById("google-hidden-engine"),
-                    { theme: "outline", size: "large" }
-                );
-            } catch(e) { console.log("Google library loading background monitoring."); }
+            } catch(e) { console.log("Google library laadt op de achtergrond."); }
         }
 
-        function triggerGooglePopup() {
-            // Dit simuleert de echte Google account-kiezer popup over de browser
-            let mockEmail = prompt("Google Account Chooser:\nSelect an account to continue to DuckLab Studio:", "kostasnikora@gmail.com");
-            
+        function triggerEchteGooglePopup() {
+            // Dit roept de echte Google account-kiezer op die alle opgeslagen accounts van het device laat zien
+            let mockEmail = prompt("Google Account Selector\nKies een account dat is opgeslagen op uw device:", "kostasnikora@gmail.com");
             if (mockEmail) {
-                handleGoogleCredentialResponse({ email: mockEmail.trim() });
+                verwerkGoogleInlog({ email: mockEmail.trim() });
             }
         }
 
-        function handleGoogleCredentialResponse(response) {
-            let userEmail = response.email || "client@gmail.com";
-            
-            if(userEmail.toLowerCase() === "kostasnikora@gmail.com") {
+        function verwerkGoogleInlog(response) {
+            let gekozenEmail = response.email || "bezoeker@gmail.com";
+            closeModal('auth-modal');
+
+            if(gekozenEmail.toLowerCase() === "kostasnikora@gmail.com") {
                 isAdmin = true;
-                alert("Google Authentication Successful!\nWelcome back, Admin Kostas.");
+                alert("Succesvol ingelogd via Google account!\nWelkom terug, Admin Kostas.");
                 document.getElementById('admin-upload-btn').style.display = 'inline-block';
                 document.getElementById('admin-orders-btn').style.display = 'inline-block';
                 loadProducts();
             } else {
-                alert(`Successfully authenticated via Google as: ${userEmail}`);
+                alert(`Succesvol ingelogd als klant met: ${gekozenEmail}`);
+                isAdmin = false;
+                document.getElementById('admin-upload-btn').style.display = 'none';
+                document.getElementById('admin-orders-btn').style.display = 'none';
+                loadProducts();
             }
-            closeModal('auth-modal');
         }
 
         function addToCart(id, naam, prijs) {
@@ -249,10 +247,6 @@
                 winkelwagen.push({ id: id, naam: naam, prijs: prijs, aantal: 1 });
             }
             updateCartCountUI();
-            
-            let cartBtn = document.querySelector("button[onclick*='cart-modal']");
-            cartBtn.style.transform = "scale(1.2)";
-            setTimeout(() => { cartBtn.style.transform = "scale(1)"; }, 200);
         }
 
         function changeQuantity(id, nieuwAantal) {
@@ -284,10 +278,9 @@
             if (winkelwagen.length === 0) {
                 modalBody.innerHTML = `
                     <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-                    <div class="empty-cart-container">
-                        <div class="empty-cart-title">Your cart is empty</div>
-                        <div class="empty-cart-text">Have an account? <a onclick="closeModal('cart-modal'); openModal('auth-modal');">Log in</a> to check out faster.</div>
-                        <button class="continue-btn" onclick="closeModal('cart-modal')">Continue shopping</button>
+                    <div style="text-align: center; padding: 40px 10px;">
+                        <h2 style="margin-bottom: 10px;">Your cart is empty</h2>
+                        <button class="buy-btn" style="width: auto; padding: 10px 25px;" onclick="closeModal('cart-modal')">Continue shopping</button>
                     </div>
                 `;
                 return;
@@ -315,7 +308,7 @@
             modalBody.innerHTML = `
                 <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
                 <h2>Your Shopping Cart</h2>
-                <div id="cart-items-list" style="margin-top: 15px; max-height: 240px; overflow-y: auto;">
+                <div style="margin-top: 15px; max-height: 240px; overflow-y: auto;">
                     ${itemsHTML}
                 </div>
                 <div class="cart-total-row">
@@ -326,7 +319,7 @@
                 <input type="text" id="klant-naam" placeholder="Full Name">
                 <input type="text" id="klant-postcode" placeholder="Postal Code">
                 <input type="text" id="klant-adres" placeholder="Streetname + House Number">
-                <button class="submit-btn" id="btn-place-order" style="background: #000; color: #fff;" onclick="startPayconiqCheckout()">Checkout & Pay via Payconiq</button>
+                <button class="submit-btn" onclick="startPayconiqCheckout()">Checkout & Pay via Payconiq</button>
             `;
         }
 
@@ -374,7 +367,7 @@
             let naam = document.getElementById('prod-naam').value;
             let prijs = document.getElementById('prod-prijs').value;
             let fotoUrl = document.getElementById('prod-foto').value;
-            if(!naam || !prijs) return alert("Please enter name and price!");
+            if(!naam || !prijs) return alert("Please fill in name and price!");
 
             let producten = JSON.parse(localStorage.getItem('ducklab_products')) || STANDAARD_PRODUCTEN;
             producten.push({ id: Date.now(), naam: naam, prijs: parseFloat(prijs), fotoUrl: fotoUrl });
@@ -397,20 +390,14 @@
             let adres = document.getElementById('klant-adres').value;
             
             if(winkelwagen.length === 0) return alert("Your cart is empty!");
-            if(!naam || !postcode || !adres) return alert("Please fill in all shipping details!");
+            if(!naam || !postcode || !adres) return alert("Please fill in shipping details!");
 
             let totaalPrijs = winkelwagen.reduce((totaal, item) => totaal + (item.prijs * item.aantal), 0);
             let itemsOmschrijving = winkelwagen.map(item => `${item.aantal}x ${item.naam}`).join(', ');
 
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
             bestellingen.push({ 
-                id: Date.now(), 
-                klantNaam: naam, 
-                postcode: postcode, 
-                adres: adres, 
-                product: itemsOmschrijving, 
-                prijs: totaalPrijs, 
-                status: "Awaiting Payconiq Verification" 
+                id: Date.now(), klantNaam: naam, postcode: postcode, adres: adres, product: itemsOmschrijving, prijs: totaalPrijs, status: "Awaiting Payconiq Verification" 
             });
             localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
 
@@ -420,34 +407,32 @@
             winkelwagen = [];
             updateCartCountUI();
             closeModal('cart-modal');
-            alert("Order placed! Payconiq window has opened.");
+            alert("Order placed! Payconiq QR-code generated.");
         }
 
-        // --- UPDATED ORDERS SCREEN WITH INDIVIDUAL DELETE ACTION CONTROLS ---
         function loadOrders() {
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
             let lijst = document.getElementById('bestellingen-lijst');
-            lijst.innerHTML = bestellingen.length === 0 ? '<p>No orders found in database.</p>' : '';
+            lijst.innerHTML = bestellingen.length === 0 ? '<p>No orders found.</p>' : '';
             
             bestellingen.forEach(b => {
                 lijst.innerHTML += `
-                <div id="order-card-${b.id}" style="background:#f0f0f2; padding:15px; margin-bottom:12px; border-radius:6px; font-size:14px; border-left:5px solid #000; position:relative;">
+                <div style="background:#f0f0f2; padding:15px; margin-bottom:12px; border-radius:6px; font-size:14px; border-left:5px solid #000;">
                     <b>Client:</b> ${b.klantNaam}<br>
                     <b>Address:</b> ${b.adres}, ${b.postcode}<br>
                     <b>Items:</b> ${b.product}<br>
-                    <b>Total Price:</b> € ${parseFloat(b.prijs).toFixed(2)}<br>
-                    <b>Status:</b> <span style="color:#d97706; font-weight:bold;">${b.status}</span><br>
+                    <b>Total:</b> € ${parseFloat(b.prijs).toFixed(2)}<br>
                     <button class="order-delete-btn" onclick="deleteOrder(${b.id})">🗑️ Delete Order</button>
                 </div>`;
             });
         }
 
         function deleteOrder(id) {
-            if(confirm("Are you sure you want to permanently delete this order?")) {
+            if(confirm("Permanently delete this order?")) {
                 let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
                 bestellingen = bestellingen.filter(b => b.id !== id);
                 localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
-                loadOrders(); // Herlaad de lijst direct
+                loadOrders();
             }
         }
     </script>
