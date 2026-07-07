@@ -63,6 +63,14 @@
         input, select { width: 100%; padding: 14px; background: #fff; border: 1px solid #ccc; color: #000; border-radius: 4px; margin-bottom: 15px; font-size: 15px; }
         .submit-btn { width: 100%; background: #000; color: #fff; border: none; padding: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
         
+        /* Empty Cart Style (Matches Screenshot) */
+        .empty-cart-container { text-align: center; padding: 50px 10px; }
+        .empty-cart-title { font-size: 28px; font-weight: 700; color: #1a1a1a; margin-bottom: 12px; }
+        .empty-cart-text { font-size: 15px; color: #4a4a4a; margin-bottom: 25px; }
+        .empty-cart-text a { color: #000; font-weight: 600; text-decoration: underline; cursor: pointer; }
+        .continue-btn { background: #000; color: #fff; border: none; padding: 15px 35px; font-size: 15px; font-weight: 600; border-radius: 25px; cursor: pointer; transition: background 0.2s; }
+        .continue-btn:hover { background: #222; }
+
         /* Shopping Cart Row Elements */
         .cart-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); gap: 10px; }
         .cart-item-info { flex-grow: 1; }
@@ -140,25 +148,8 @@
 
     <!-- SHOPPING CART / CHECKOUT MODAL -->
     <div id="cart-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-            <h2>Your Shopping Cart</h2>
-            
-            <!-- Cart Items Holder -->
-            <div id="cart-items-list" style="margin-top: 15px; max-height: 240px; overflow-y: auto;">
-                <!-- Filled dynamically by JavaScript -->
-            </div>
-            
-            <div class="cart-total-row">
-                <span>Total:</span>
-                <span id="cart-total-price">€ 0.00</span>
-            </div>
-
-            <h3 style="margin-bottom: 10px; font-size: 16px;">Shipping Details</h3>
-            <input type="text" id="klant-naam" placeholder="Full Name">
-            <input type="text" id="klant-postcode" placeholder="Postal Code">
-            <input type="text" id="klant-adres" placeholder="Streetname + House Number">
-            <button class="submit-btn" id="btn-place-order" style="background: #10b981; color: white;" onclick="startPayconiqCheckout()">Checkout & Pay via Payconiq</button>
+        <div class="modal-content" id="cart-modal-body">
+            <!-- Content swaps automatically between list and screenshot-style empty view -->
         </div>
     </div>
 
@@ -166,6 +157,8 @@
         const EMAILJS_PUBLIC_KEY = "nX-Rp_DkBYlLtAX-I"; 
         const EMAILJS_TEMPLATE_ID = "template_osvg32m";
         const EMAILJS_SERVICE_ID = "service_cb995gq"; 
+        
+        // Pas dit aan naar jouw eigen e-mailadres voor de betalingen!
         const PAYCONIQ_ONTVANGER = "kostasnikora@gmail.com"; 
 
         emailjs.init(EMAILJS_PUBLIC_KEY);
@@ -175,7 +168,6 @@
         let huidigeValuta = "EUR";
         const EUR_NAAR_USD_KOERS = 1.09;
 
-        // Shopping Cart Array
         let winkelwagen = [];
 
         const STANDAARD_PRODUCTEN = [
@@ -195,16 +187,13 @@
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-        // --- SHOPPING CART CORE LOGIC ---
         function addToCart(id, naam, prijs) {
             let bestaandItem = winkelwagen.find(item => item.id === id);
-            
             if (bestaandItem) {
                 bestaandItem.aantal += 1;
             } else {
                 winkelwagen.push({ id: id, naam: naam, prijs: prijs, aantal: 1 });
             }
-            
             updateCartCountUI();
             
             let cartBtn = document.querySelector("button[onclick*='cart-modal']");
@@ -236,21 +225,28 @@
         }
 
         function renderCartUI() {
-            let lijstHTML = document.getElementById('cart-items-list');
-            lijstHTML.innerHTML = '';
+            let modalBody = document.getElementById('cart-modal-body');
             
             if (winkelwagen.length === 0) {
-                lijstHTML.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px 0;">Your shopping cart is empty.</p>';
-                document.getElementById('cart-total-price').innerText = formatPrice(0);
+                // Exact replication of the screenshot layout
+                modalBody.innerHTML = `
+                    <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
+                    <div class="empty-cart-container">
+                        <div class="empty-cart-title">Your cart is empty</div>
+                        <div class="empty-cart-text">Have an account? <a onclick="closeModal('cart-modal'); openModal('auth-modal');">Log in</a> to check out faster.</div>
+                        <button class="continue-btn" onclick="closeModal('cart-modal')">Continue shopping</button>
+                    </div>
+                `;
                 return;
             }
 
+            // Normal layout when items are present
+            let itemsHTML = '';
             let totaalPrijsEur = 0;
 
             winkelwagen.forEach(item => {
                 totaalPrijsEur += (item.prijs * item.aantal);
-
-                lijstHTML.innerHTML += `
+                itemsHTML += `
                     <div class="cart-item">
                         <div class="cart-item-info">
                             <div class="cart-item-title">${item.naam}</div>
@@ -264,7 +260,22 @@
                 `;
             });
 
-            document.getElementById('cart-total-price').innerText = formatPrice(totaalPrijsEur);
+            modalBody.innerHTML = `
+                <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
+                <h2>Your Shopping Cart</h2>
+                <div id="cart-items-list" style="margin-top: 15px; max-height: 240px; overflow-y: auto;">
+                    ${itemsHTML}
+                </div>
+                <div class="cart-total-row">
+                    <span>Total:</span>
+                    <span>${formatPrice(totaalPrijsEur)}</span>
+                </div>
+                <h3 style="margin-bottom: 10px; font-size: 16px;">Shipping Details</h3>
+                <input type="text" id="klant-naam" placeholder="Full Name">
+                <input type="text" id="klant-postcode" placeholder="Postal Code">
+                <input type="text" id="klant-adres" placeholder="Streetname + House Number">
+                <button class="submit-btn" id="btn-place-order" style="background: #10b981; color: white;" onclick="startPayconiqCheckout()">Checkout & Pay via Payconiq</button>
+            `;
         }
 
         function changeCurrency(valuta) {
