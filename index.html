@@ -69,7 +69,7 @@
         <div class="grid" id="products-grid"></div>
     </div>
 
-    <!-- ORDERS MODAL -->
+    <!-- ORDERS MODAL (ADMIN) -->
     <div id="orders-modal" class="modal hidden">
         <div class="modal-content" style="max-width: 600px;">
             <span class="close-btn" onclick="closeModal('orders-modal')">&times;</span>
@@ -84,8 +84,8 @@
     </div>
 
     <script>
-        // Vul hier jouw eigen Mollie API of Payment Link profiel in (zorg dat je daar alleen Payconiq activeert!)
-        const MOLLIE_PAYMENT_URL = "https://www.mollie.com/checkout/select-wallet/"; 
+        // Change this to your official Payconiq Merchant ID or Payconiq link details
+        const PAYCONIQ_MERCHANT_ID = "YOUR_PAYCONIQ_ID"; 
 
         let isAdmin = false;
         let winkelwagen = [];
@@ -100,7 +100,7 @@
                 localStorage.setItem('ducklab_products', JSON.stringify(STANDAARD_PRODUCTEN));
             }
             checkAdminStatus();
-            checkPayconiqCallback(); // Controleert automatisch de unieke code bij terugkeer!
+            checkPayconiqCallback(); 
             loadProducts();
             updateCartCountUI();
         };
@@ -121,36 +121,48 @@
             }
         }
 
-        // ================= AUTOMATISCHE PAYCONIQ CHECK =================
+        // ================= PURE PAYCONIQ GENERATOR & FIXES =================
         function startPayconiqCheckout() {
             let naam = document.getElementById('klant-naam').value;
             let postcode = document.getElementById('klant-postcode').value;
             let adres = document.getElementById('klant-adres').value;
             
-            if(!naam || !postcode || !adres) return alert("Vul je verzendgegevens in!");
+            if(!naam || !postcode || !adres) return alert("Please fill out all your shipping information!");
 
             let totaalPrijs = winkelwagen.reduce((totaal, item) => totaal + (item.prijs * item.aantal), 0);
             let itemsOmschrijving = winkelwagen.map(item => `${item.aantal}x ${item.naam}`).join(', ');
             
-            let orderId = "PQ-" + Math.floor(100000 + Math.random() * 900000); // Uniek Payconiq Order ID
+            let orderId = "PQ-" + Math.floor(100000 + Math.random() * 900000); 
 
-            // 1. Sla de bestelling op in de database als "Wachten op Payconiq..."
+            // FIX 1: Save order to LocalStorage IMMEDIATELY so you see it instantly in Admin Panel
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
             bestellingen.push({ 
-                id: orderId, klantNaam: naam, postcode: postcode, adres: adres, product: itemsOmschrijving, prijs: totaalPrijs, status: "Wachten op Payconiq betaling" 
+                id: orderId, klantNaam: naam, postcode: postcode, adres: adres, product: itemsOmschrijving, prijs: totaalPrijs, status: "Awaiting Payconiq Payment" 
             });
             localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
 
-            // 2. We sturen de klant door naar de Payconiq checkout.
-            // Als de betaling lukt, stuurt het systeem ze terug naar jouw site met de juiste code in de URL.
+            // FIX 2: Generate direct Payconiq API string format into a functional QR code image
+            let payconiqData = `https://payconiq.com/pay?m=${PAYCONIQ_MERCHANT_ID}&a=${totaalPrijs.toFixed(2)}&r=${orderId}`;
+            let qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(payconiqData)}`;
+
+            // Display the interactive Payconiq payment screen
+            let modalBody = document.getElementById('cart-modal-body');
+            modalBody.innerHTML = `
+                <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
+                <div style="text-align:center; padding:10px;">
+                    <h2 style="color:#ff3366; margin-bottom:15px;">📱 Scan with Payconiq</h2>
+                    <img src="${qrCodeUrl}" alt="Payconiq QR Code" style="border: 3px solid #000; padding:10px; margin-bottom:15px; width:220px; height:220px;">
+                    <p style="font-size:14px; margin-bottom:15px;"><b>Order ID:</b> ${orderId}<br><b>Total Amount:</b> € ${totaalPrijs.toFixed(2)}</p>
+                    <p style="font-size:12px; color:#555; margin-bottom:15px;">Open your Payconiq app, scan, and confirm.</p>
+                    <button class="submit-btn" style="background:#000;" onclick="confirmPaymentSimulation('${orderId}')">I Have Paid (Confirm)</button>
+                </div>
+            `;
+        }
+
+        // Simulates payment verification since GitHub Pages can't automatically receive external bank webhooks
+        function confirmPaymentSimulation(orderId) {
             let returnUrl = window.location.href.split('?')[0] + `?payconiq_status=success&order_id=${orderId}`;
-            
-            alert("Je wordt nu doorgestuurd naar Payconiq om mobiel af te rekenen...");
-            
-            // Hier simuleert de code de stap naar de Payconiq app en de automatische terugkeer:
-            setTimeout(() => {
-                window.location.href = returnUrl;
-            }, 1200);
+            window.location.href = returnUrl;
         }
 
         function checkPayconiqCallback() {
@@ -161,21 +173,18 @@
                 let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
                 let order = bestellingen.find(b => b.id === gelukteOrderID);
                 
-                if (order && order.status !== "Payconiq Betaald! ✅") {
-                    // Systeem zet de order direct en automatisch op betaald!
-                    order.status = "Payconiq Betaald! ✅";
+                if (order && order.status !== "Payconiq Paid! ✅") {
+                    order.status = "Payconiq Paid! ✅";
                     localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
                     
-                    alert("🎉 Payconiq betaling geslaagd! Je bestelling is automatisch goedgekeurd.");
-                    
+                    alert("🎉 Thank you! Your Payconiq payment was registered. The order is now active.");
                     winkelwagen = [];
                     updateCartCountUI();
                 }
-                // Haal de codes netjes uit de URL-balk zodat de site er weer normaal uitziet
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
         }
-        // ===============================================================
+        // ===================================================================
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
@@ -193,18 +202,18 @@
         function renderCartUI() {
             let modalBody = document.getElementById('cart-modal-body');
             if (winkelwagen.length === 0) {
-                modalBody.innerHTML = `<span class="close-btn" onclick="closeModal('cart-modal')">&times;</span><h2>Je winkelwagen is leeg</h2>`;
+                modalBody.innerHTML = `<span class="close-btn" onclick="closeModal('cart-modal')">&times;</span><h2>Your cart is empty</h2>`;
                 return;
             }
             let totaal = winkelwagen.reduce((t, i) => t + (i.prijs * i.aantal), 0);
             modalBody.innerHTML = `
                 <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-                <h2>Winkelwagen</h2>
-                <div style="margin: 15px 0; font-weight: bold;">Totaal: € ${totaal.toFixed(2)}</div>
-                <input type="text" id="klant-naam" placeholder="Volledige Naam">
-                <input type="text" id="klant-postcode" placeholder="Postcode">
-                <input type="text" id="klant-adres" placeholder="Straat + Huisnummer">
-                <button class="submit-btn" onclick="startPayconiqCheckout()">📱 Betaal met Payconiq</button>
+                <h2>Shopping Cart</h2>
+                <div style="margin: 15px 0; font-weight: bold;">Total: € ${totaal.toFixed(2)}</div>
+                <input type="text" id="klant-naam" placeholder="Full Name">
+                <input type="text" id="klant-postcode" placeholder="Postal Code">
+                <input type="text" id="klant-adres" placeholder="Street + House Number">
+                <button class="submit-btn" onclick="startPayconiqCheckout()">📱 Pay with Payconiq</button>
             `;
         }
 
@@ -219,7 +228,7 @@
                         <div class="product-info">
                             <div class="product-title">${p.naam}</div>
                             <div class="product-price">€ ${p.prijs.toFixed(2)}</div>
-                            <button class="buy-btn" onclick="addToCart(${p.id}, '${p.naam}', ${p.prijs})">In winkelwagen</button>
+                            <button class="buy-btn" onclick="addToCart(${p.id}, '${p.naam}', ${p.prijs})">Add to cart</button>
                         </div>
                     </div>`;
             });
@@ -228,15 +237,15 @@
         function loadOrders() {
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
             let lijst = document.getElementById('bestellingen-lijst');
-            lijst.innerHTML = bestellingen.length === 0 ? '<p>Geen bestellingen.</p>' : '';
+            lijst.innerHTML = bestellingen.length === 0 ? '<p>No orders found.</p>' : '';
             bestellingen.forEach(b => {
                 let statusClass = b.status.includes("✅") ? "status-paid" : "status-waiting";
                 lijst.innerHTML += `
-                <div style="background:#f0f0f2; padding:15px; margin-bottom:12px; border-radius:6px; font-size:14px;">
-                    <b>Payconiq ID:</b> ${b.id}<br>
-                    <b>Klant:</b> ${b.klantNaam}<br>
-                    <b>Producten:</b> ${b.product}<br>
-                    <b>Totaal:</b> € ${parseFloat(b.prijs).toFixed(2)}<br>
+                <div style="background:#f0f0f2; padding:15px; margin-bottom:12px; border-radius:6px; font-size:14px; color:#000;">
+                    <b>Order ID:</b> ${b.id}<br>
+                    <b>Client Name:</b> ${b.klantNaam}<br>
+                    <b>Items Ordered:</b> ${b.product}<br>
+                    <b>Total Price:</b> € ${parseFloat(b.prijs).toFixed(2)}<br>
                     <b>Status:</b> <span class="status-badge ${statusClass}">${b.status}</span>
                 </div>`;
             });
