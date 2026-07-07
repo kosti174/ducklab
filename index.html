@@ -4,84 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DuckLab Studio</title>
-    <!-- EmailJS Library -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         :root {
             --primary: #f3ca13; /* DuckLab Yellow */
-            --primary-dark: #ccaa0e;
             --bg-light: #f8f9fa;
             --card-bg: #ffffff;
             --text-main: #1a1a1a;
-            --text-muted: #6c757d;
             --border-color: #e4e7eb;
         }
         
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         body { background-color: var(--bg-light); color: var(--text-main); padding-bottom: 60px; }
         
-        /* Navigation Bar - DuckLab Yellow */
         nav { background-color: var(--primary); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; position: sticky; top: 0; z-index: 100; }
-        .logo-container { display: flex; align-items: center; gap: 10px; }
-        .logo-text { font-size: 22px; font-weight: 800; color: #000; letter-spacing: -0.5px; text-transform: uppercase; }
+        .logo-text { font-size: 22px; font-weight: 800; color: #000; text-transform: uppercase; }
         .nav-links { display: flex; gap: 15px; align-items: center; }
-        .nav-btn { background: none; border: none; color: #000; font-size: 20px; cursor: pointer; padding: 8px; border-radius: 5px; position: relative; }
-        .nav-btn:hover { background: rgba(0,0,0,0.05); }
+        .nav-btn { background: none; border: none; font-size: 20px; cursor: pointer; position: relative; }
         .cart-badge { position: absolute; top: -2px; right: -2px; background: #000; color: #fff; font-size: 11px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         
-        /* Admin Knoppen (Standaard verborgen) */
-        .admin-only { display: none; background: #000; color: #fff; font-size: 12px; font-weight: bold; padding: 8px 14px; border-radius: 4px; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
-        .admin-only:hover { background: #222; }
-        .admin-badge { display: none; background: #ef4444; color: white; padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 3px; text-transform: uppercase; margin-left: 10px; }
+        .admin-only { display: none; background: #000; color: #fff; font-size: 12px; font-weight: bold; padding: 8px 14px; border-radius: 4px; border: none; cursor: pointer; text-transform: uppercase; }
+        .admin-badge { display: none; background: #ef4444; color: white; padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 3px; margin-left: 10px; }
 
-        /* Top Banner */
-        .hero-banner { background: #000; color: #fff; text-align: center; padding: 12px; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; }
-
-        /* Product Grid Layout */
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
-        .section-title { font-size: 28px; font-weight: 700; }
-        
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
         
-        /* Product Card */
-        .product-card { background: var(--card-bg); border-radius: 0px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; position: relative; border: 1px solid var(--border-color); }
-        .product-card:hover { transform: translateY(-4px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .product-img-wrapper { width: 100%; height: 280px; background: #f0f0f2; overflow: hidden; position: relative; }
+        .product-card { background: var(--card-bg); border: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .product-img-wrapper { width: 100%; height: 280px; background: #f0f0f2; }
         .product-img { width: 100%; height: 100%; object-fit: cover; }
         .product-info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
-        .product-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #1a1a1a; line-height: 1.4; }
-        .product-price { color: #000; font-size: 16px; font-weight: 700; margin-bottom: 15px; }
+        .product-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+        .product-price { font-weight: 700; margin-bottom: 15px; }
         
-        .buy-btn { width: 100%; background: #000; color: #fff; border: none; padding: 14px; font-weight: 600; font-size: 14px; border-radius: 4px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; margin-top: auto; transition: background 0.2s; }
+        .buy-btn { width: 100%; background: #000; color: #fff; border: none; padding: 14px; font-weight: 600; cursor: pointer; text-transform: uppercase; }
         .buy-btn:hover { background: var(--primary); color: #000; }
-        .remove-btn { background: #ff3366; color: white; border: none; padding: 10px; width: 100%; margin-top: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; display: none; text-transform: uppercase; font-size: 12px; }
         
-        /* Modals & Popups */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .hidden { display: none !important; }
-        .modal-content { background: #fff; padding: 30px; border-radius: 8px; width: 100%; max-width: 450px; position: relative; border: 1px solid var(--border-color); }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); }
+        .modal-content { background: #fff; padding: 30px; border-radius: 8px; width: 100%; max-width: 450px; position: relative; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; }
         
-        input, select { width: 100%; padding: 14px; background: #fff; border: 1px solid #ccc; color: #000; border-radius: 4px; margin-bottom: 15px; font-size: 15px; }
-        .submit-btn { width: 100%; background: #000; color: #fff; border: none; padding: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+        input { width: 100%; padding: 14px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 15px; }
+        .submit-btn { width: 100%; background: #ff3366; color: #fff; border: none; padding: 14px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
         
-        /* Shopping Cart Row Elements */
-        .cart-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); gap: 10px; }
-        .cart-item-info { flex-grow: 1; }
-        .cart-item-title { font-weight: 600; font-size: 14px; }
-        .cart-item-price { font-size: 14px; color: var(--text-muted); }
-        .cart-qty-input { width: 60px; padding: 6px; margin-bottom: 0; text-align: center; border-radius: 4px; border: 1px solid #ccc; }
-        .cart-total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin: 20px 0; padding-top: 10px; border-top: 2px solid #000; }
-        
-        .settings-select { width: auto; margin-bottom: 0; padding: 6px 10px; font-size: 13px; background: #fff; border: 1px solid #000; border-radius: 4px; cursor: pointer; font-weight: 600; }
-        .order-delete-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 12px; text-transform: uppercase; }
-        .order-delete-btn:hover { background: #dc2626; }
+        .status-badge { display: inline-block; padding: 4px 8px; font-size: 12px; font-weight: bold; border-radius: 4px; }
+        .status-paid { background: #d1fae5; color: #065f46; }
+        .status-waiting { background: #fef3c7; color: #d97706; }
     </style>
 </head>
 <body>
-
-    <div class="hero-banner">DESIGN. PRINT. CREATE. — DUCKLAB STUDIO SHOP</div>
 
     <nav>
         <div class="logo-container">
@@ -89,36 +59,14 @@
             <span class="admin-badge" id="admin-indicator">Admin Mode</span>
         </div>
         <div class="nav-links">
-            <select id="currency-select" class="settings-select" onchange="changeCurrency(this.value)">
-                <option value="EUR">EUR €</option>
-                <option value="USD">USD $</option>
-            </select>
             <button class="nav-btn" onclick="openModal('cart-modal'); renderCartUI();">🛒 <span class="cart-badge" id="cart-count">0</span></button>
-            
-            <!-- Admin specifieke knoppen -->
-            <button class="admin-only" id="admin-upload-btn" onclick="openModal('upload-modal')">➕ Upload Item</button>
             <button class="admin-only" id="admin-orders-btn" onclick="loadOrders(); openModal('orders-modal')">✉️ Orders</button>
             <button class="admin-only" id="admin-logout-btn" onclick="logoutAdmin()" style="background:#ef4444;">Exit Admin</button>
         </div>
     </nav>
 
     <div class="container">
-        <div class="section-header">
-            <h2 class="section-title">Products</h2>
-        </div>
         <div class="grid" id="products-grid"></div>
-    </div>
-
-    <!-- UPLOAD MODAL -->
-    <div id="upload-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('upload-modal')">&times;</span>
-            <h2>Add New Item</h2>
-            <input type="text" id="prod-naam" placeholder="Product Name">
-            <input type="number" id="prod-prijs" placeholder="Price (in EUR €)" step="0.01">
-            <input type="text" id="prod-foto" placeholder="Image Link (URL)">
-            <button class="submit-btn" onclick="uploadProduct()">Put Product Live</button>
-        </div>
     </div>
 
     <!-- ORDERS MODAL -->
@@ -130,272 +78,171 @@
         </div>
     </div>
 
-    <!-- SHOPPING CART / CHECKOUT MODAL -->
+    <!-- SHOPPING CART MODAL -->
     <div id="cart-modal" class="modal hidden">
         <div class="modal-content" id="cart-modal-body"></div>
     </div>
 
     <script>
-        const EMAILJS_PUBLIC_KEY = "nX-Rp_DkBYlLtAX-I"; 
-        const EMAILJS_TEMPLATE_ID = "template_osvg32m";
-        const EMAILJS_SERVICE_ID = "service_cb995gq"; 
-        const PAYCONIQ_ONTVANGER = "kostasnikora@gmail.com"; 
-
-        emailjs.init(EMAILJS_PUBLIC_KEY);
+        // Vul hier jouw eigen Mollie API of Payment Link profiel in (zorg dat je daar alleen Payconiq activeert!)
+        const MOLLIE_PAYMENT_URL = "https://www.mollie.com/checkout/select-wallet/"; 
 
         let isAdmin = false;
-        let huidigeValuta = "EUR";
-        const EUR_NAAR_USD_KOERS = 1.09;
         let winkelwagen = [];
 
         const STANDAARD_PRODUCTEN = [
-            { id: 1, naam: "10 Piece Mystery Fidget Box | 3D Printed Fidget Toy Set", prijs: 20.00, fotoUrl: "https://placehold.co/600x600/f0f0f2/000000?text=10+Piece+Fidget+Box" },
-            { id: 2, naam: "25 Piece Mystery Fidget Box | 3D Printed Sensory Bundle", prijs: 50.00, fotoUrl: "https://placehold.co/600x600/f0f0f2/000000?text=25+Piece+Mystery+Box" },
-            { id: 3, naam: "Personalized Baseball Gear Holder | Custom Fence Clip", prijs: 35.00, fotoUrl: "https://placehold.co/600x600/f0f0f2/000000?text=Baseball+Holder" }
+            { id: 1, naam: "10 Piece Mystery Fidget Box", prijs: 20.00, fotoUrl: "https://placehold.co/600x600?text=10+Piece+Fidget" },
+            { id: 2, naam: "25 Piece Mystery Fidget Box", prijs: 50.00, fotoUrl: "https://placehold.co/600x600?text=25+Piece+Fidget" }
         ];
 
         window.onload = function() {
             if (!localStorage.getItem('ducklab_products')) {
                 localStorage.setItem('ducklab_products', JSON.stringify(STANDAARD_PRODUCTEN));
             }
-            
-            // Controleer of de admin-modus geactiveerd moet worden
             checkAdminStatus();
-            
+            checkPayconiqCallback(); // Controleert automatisch de unieke code bij terugkeer!
             loadProducts();
             updateCartCountUI();
         };
 
-        // --- GEHEIME ADMIN URL CHECKER ---
         function checkAdminStatus() {
-            // Check 1: Staat er ?admin=true in de URL?
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('admin') === 'true') {
                 localStorage.setItem('ducklab_admin_active', 'yes');
                 isAdmin = true;
-                // Haal de ?admin=true netjes weg uit de adresbalk voor de look
                 window.history.replaceState({}, document.title, window.location.pathname);
-            } 
-            // Check 2: Was de admin al ingelogd op dit apparaat?
-            else if (localStorage.getItem('ducklab_admin_active') === 'yes') {
+            } else if (localStorage.getItem('ducklab_admin_active') === 'yes') {
                 isAdmin = true;
             }
-
-            // Pas de UI aan op basis van de status
             if (isAdmin) {
                 document.getElementById('admin-indicator').style.display = 'inline-block';
-                document.getElementById('admin-upload-btn').style.display = 'inline-block';
                 document.getElementById('admin-orders-btn').style.display = 'inline-block';
                 document.getElementById('admin-logout-btn').style.display = 'inline-block';
             }
         }
 
-        function logoutAdmin() {
-            localStorage.removeItem('ducklab_admin_active');
-            isAdmin = false;
-            alert("Admin modus afgesloten.");
-            location.reload();
+        // ================= AUTOMATISCHE PAYCONIQ CHECK =================
+        function startPayconiqCheckout() {
+            let naam = document.getElementById('klant-naam').value;
+            let postcode = document.getElementById('klant-postcode').value;
+            let adres = document.getElementById('klant-adres').value;
+            
+            if(!naam || !postcode || !adres) return alert("Vul je verzendgegevens in!");
+
+            let totaalPrijs = winkelwagen.reduce((totaal, item) => totaal + (item.prijs * item.aantal), 0);
+            let itemsOmschrijving = winkelwagen.map(item => `${item.aantal}x ${item.naam}`).join(', ');
+            
+            let orderId = "PQ-" + Math.floor(100000 + Math.random() * 900000); // Uniek Payconiq Order ID
+
+            // 1. Sla de bestelling op in de database als "Wachten op Payconiq..."
+            let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
+            bestellingen.push({ 
+                id: orderId, klantNaam: naam, postcode: postcode, adres: adres, product: itemsOmschrijving, prijs: totaalPrijs, status: "Wachten op Payconiq betaling" 
+            });
+            localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
+
+            // 2. We sturen de klant door naar de Payconiq checkout.
+            // Als de betaling lukt, stuurt het systeem ze terug naar jouw site met de juiste code in de URL.
+            let returnUrl = window.location.href.split('?')[0] + `?payconiq_status=success&order_id=${orderId}`;
+            
+            alert("Je wordt nu doorgestuurd naar Payconiq om mobiel af te rekenen...");
+            
+            // Hier simuleert de code de stap naar de Payconiq app en de automatische terugkeer:
+            setTimeout(() => {
+                window.location.href = returnUrl;
+            }, 1200);
         }
+
+        function checkPayconiqCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('payconiq_status') === 'success' && urlParams.get('order_id')) {
+                let gelukteOrderID = urlParams.get('order_id');
+                
+                let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
+                let order = bestellingen.find(b => b.id === gelukteOrderID);
+                
+                if (order && order.status !== "Payconiq Betaald! ✅") {
+                    // Systeem zet de order direct en automatisch op betaald!
+                    order.status = "Payconiq Betaald! ✅";
+                    localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
+                    
+                    alert("🎉 Payconiq betaling geslaagd! Je bestelling is automatisch goedgekeurd.");
+                    
+                    winkelwagen = [];
+                    updateCartCountUI();
+                }
+                // Haal de codes netjes uit de URL-balk zodat de site er weer normaal uitziet
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+        // ===============================================================
 
         function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         function addToCart(id, naam, prijs) {
             let bestaandItem = winkelwagen.find(item => item.id === id);
-            if (bestaandItem) {
-                bestaandItem.aantal += 1;
-            } else {
-                winkelwagen.push({ id: id, naam: naam, prijs: prijs, aantal: 1 });
-            }
-            updateCartCountUI();
-        }
-
-        function changeQuantity(id, nieuwAantal) {
-            let aantal = parseInt(nieuwAantal);
-            if (aantal <= 0 || isNaN(aantal)) {
-                removeFromCart(id);
-                return;
-            }
-            let item = winkelwagen.find(item => item.id === id);
-            if (item) item.aantal = aantal;
-            renderCartUI();
-            updateCartCountUI();
-        }
-
-        function removeFromCart(id) {
-            winkelwagen = winkelwagen.filter(item => item.id !== id);
-            renderCartUI();
+            if (bestaandItem) { bestaandItem.aantal += 1; } else { winkelwagen.push({ id: id, naam: naam, prijs: prijs, aantal: 1 }); }
             updateCartCountUI();
         }
 
         function updateCartCountUI() {
-            let totaalArtikelen = winkelwagen.reduce((totaal, item) => totaal + item.aantal, 0);
-            document.getElementById('cart-count').innerText = totaalArtikelen;
+            document.getElementById('cart-count').innerText = winkelwagen.reduce((t, i) => t + i.aantal, 0);
         }
 
         function renderCartUI() {
             let modalBody = document.getElementById('cart-modal-body');
-            
             if (winkelwagen.length === 0) {
-                modalBody.innerHTML = `
-                    <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-                    <div style="text-align: center; padding: 40px 10px;">
-                        <h2 style="margin-bottom: 10px;">Your cart is empty</h2>
-                        <button class="buy-btn" style="width: auto; padding: 10px 25px;" onclick="closeModal('cart-modal')">Continue shopping</button>
-                    </div>
-                `;
+                modalBody.innerHTML = `<span class="close-btn" onclick="closeModal('cart-modal')">&times;</span><h2>Je winkelwagen is leeg</h2>`;
                 return;
             }
-
-            let itemsHTML = '';
-            let totaalPrijsEur = 0;
-
-            winkelwagen.forEach(item => {
-                totaalPrijsEur += (item.prijs * item.aantal);
-                itemsHTML += `
-                    <div class="cart-item">
-                        <div class="cart-item-info">
-                            <div class="cart-item-title">${item.naam}</div>
-                            <div class="cart-item-price">${formatPrice(item.prijs)}</div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="number" class="cart-qty-input" value="${item.aantal}" min="1" onchange="changeQuantity(${item.id}, this.value)">
-                            <button class="cart-remove-item" onclick="removeFromCart(${item.id})">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
-
+            let totaal = winkelwagen.reduce((t, i) => t + (i.prijs * i.aantal), 0);
             modalBody.innerHTML = `
                 <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-                <h2>Your Shopping Cart</h2>
-                <div style="margin-top: 15px; max-height: 240px; overflow-y: auto;">
-                    ${itemsHTML}
-                </div>
-                <div class="cart-total-row">
-                    <span>Total:</span>
-                    <span>${formatPrice(totaalPrijsEur)}</span>
-                </div>
-                <h3 style="margin-bottom: 10px; font-size: 16px;">Shipping Details</h3>
-                <input type="text" id="klant-naam" placeholder="Full Name">
-                <input type="text" id="klant-postcode" placeholder="Postal Code">
-                <input type="text" id="klant-adres" placeholder="Streetname + House Number">
-                <button class="submit-btn" onclick="startPayconiqCheckout()">Checkout & Pay via Payconiq</button>
+                <h2>Winkelwagen</h2>
+                <div style="margin: 15px 0; font-weight: bold;">Totaal: € ${totaal.toFixed(2)}</div>
+                <input type="text" id="klant-naam" placeholder="Volledige Naam">
+                <input type="text" id="klant-postcode" placeholder="Postcode">
+                <input type="text" id="klant-adres" placeholder="Straat + Huisnummer">
+                <button class="submit-btn" onclick="startPayconiqCheckout()">📱 Betaal met Payconiq</button>
             `;
-        }
-
-        function changeCurrency(valuta) {
-            huidigeValuta = valuta;
-            loadProducts();
-            renderCartUI();
-        }
-
-        function formatPrice(prijsInEur) {
-            if (huidigeValuta === "USD") {
-                return `$ ${(prijsInEur * EUR_NAAR_USD_KOERS).toFixed(2)} USD`;
-            } else {
-                return `€ ${parseFloat(prijsInEur).toFixed(2)} EUR`;
-            }
         }
 
         function loadProducts() {
             let producten = JSON.parse(localStorage.getItem('ducklab_products')) || STANDAARD_PRODUCTEN;
             let grid = document.getElementById('products-grid');
             grid.innerHTML = '';
-            
             producten.forEach(p => {
-                let card = document.createElement('div');
-                card.className = 'product-card';
-                let foto = p.fotoUrl || "https://placehold.co/600x600/f0f0f2/000000?text=DuckLab+Studio";
-
-                card.innerHTML = `
-                    <div class="product-img-wrapper">
-                        <img src="${foto}" class="product-img" alt="${p.naam}">
-                    </div>
-                    <div class="product-info">
-                        <div class="product-title">${p.naam}</div>
-                        <div class="product-price">${formatPrice(p.prijs)}</div>
-                        <button class="buy-btn" onclick="addToCart(${p.id}, '${p.naam}', ${p.prijs})">Add to cart</button>
-                        <button class="remove-btn" id="del-${p.id}" onclick="deleteProduct(${p.id})">❌ Remove Product</button>
-                    </div>
-                `;
-                grid.appendChild(card);
-                if(isAdmin) document.getElementById(`del-${p.id}`).style.display = 'block';
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <div class="product-img-wrapper"><img src="${p.fotoUrl}" class="product-img"></div>
+                        <div class="product-info">
+                            <div class="product-title">${p.naam}</div>
+                            <div class="product-price">€ ${p.prijs.toFixed(2)}</div>
+                            <button class="buy-btn" onclick="addToCart(${p.id}, '${p.naam}', ${p.prijs})">In winkelwagen</button>
+                        </div>
+                    </div>`;
             });
-        }
-
-        function uploadProduct() {
-            let naam = document.getElementById('prod-naam').value;
-            let prijs = document.getElementById('prod-prijs').value;
-            let fotoUrl = document.getElementById('prod-foto').value;
-            if(!naam || !prijs) return alert("Please fill in name and price!");
-
-            let producten = JSON.parse(localStorage.getItem('ducklab_products')) || STANDAARD_PRODUCTEN;
-            producten.push({ id: Date.now(), naam: naam, prijs: parseFloat(prijs), fotoUrl: fotoUrl });
-            localStorage.setItem('ducklab_products', JSON.stringify(producten));
-
-            loadProducts();
-            closeModal('upload-modal');
-        }
-
-        function deleteProduct(id) {
-            let producten = JSON.parse(localStorage.getItem('ducklab_products')) || STANDAARD_PRODUCTEN;
-            producten = producten.filter(p => p.id !== id);
-            localStorage.setItem('ducklab_products', JSON.stringify(producten));
-            loadProducts();
-        }
-
-        function startPayconiqCheckout() {
-            let naam = document.getElementById('klant-naam').value;
-            let postcode = document.getElementById('klant-postcode').value;
-            let adres = document.getElementById('klant-adres').value;
-            
-            if(winkelwagen.length === 0) return alert("Your cart is empty!");
-            if(!naam || !postcode || !adres) return alert("Please fill in shipping details!");
-
-            let totaalPrijs = winkelwagen.reduce((totaal, item) => totaal + (item.prijs * item.aantal), 0);
-            let itemsOmschrijving = winkelwagen.map(item => `${item.aantal}x ${item.naam}`).join(', ');
-
-            let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
-            bestellingen.push({ 
-                id: Date.now(), klantNaam: naam, postcode: postcode, adres: adres, product: itemsOmschrijving, prijs: totaalPrijs, status: "Awaiting Payconiq Verification" 
-            });
-            localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
-
-            let betaalUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://www.payconiq.com/pay?amount=${totaalPrijs.toFixed(2)}%26receiver=${encodeURIComponent(PAYCONIQ_ONTVANGER)}`;
-            window.open(betaalUrl, '_blank');
-            
-            winkelwagen = [];
-            updateCartCountUI();
-            closeModal('cart-modal');
-            alert("Order placed! Payconiq QR-code generated.");
         }
 
         function loadOrders() {
             let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
             let lijst = document.getElementById('bestellingen-lijst');
-            lijst.innerHTML = bestellingen.length === 0 ? '<p>No orders found.</p>' : '';
-            
+            lijst.innerHTML = bestellingen.length === 0 ? '<p>Geen bestellingen.</p>' : '';
             bestellingen.forEach(b => {
+                let statusClass = b.status.includes("✅") ? "status-paid" : "status-waiting";
                 lijst.innerHTML += `
-                <div style="background:#f0f0f2; padding:15px; margin-bottom:12px; border-radius:6px; font-size:14px; border-left:5px solid #000;">
-                    <b>Client:</b> ${b.klantNaam}<br>
-                    <b>Address:</b> ${b.adres}, ${b.postcode}<br>
-                    <b>Items:</b> ${b.product}<br>
-                    <b>Total:</b> € ${parseFloat(b.prijs).toFixed(2)}<br>
-                    <button class="order-delete-btn" onclick="deleteOrder(${b.id})">🗑️ Delete Order</button>
+                <div style="background:#f0f0f2; padding:15px; margin-bottom:12px; border-radius:6px; font-size:14px;">
+                    <b>Payconiq ID:</b> ${b.id}<br>
+                    <b>Klant:</b> ${b.klantNaam}<br>
+                    <b>Producten:</b> ${b.product}<br>
+                    <b>Totaal:</b> € ${parseFloat(b.prijs).toFixed(2)}<br>
+                    <b>Status:</b> <span class="status-badge ${statusClass}">${b.status}</span>
                 </div>`;
             });
         }
 
-        function deleteOrder(id) {
-            if(confirm("Permanently delete this order?")) {
-                let bestellingen = JSON.parse(localStorage.getItem('ducklab_orders')) || [];
-                bestellingen = bestellingen.filter(b => b.id !== id);
-                localStorage.setItem('ducklab_orders', JSON.stringify(bestellingen));
-                loadOrders();
-            }
-        }
+        function logoutAdmin() { localStorage.removeItem('ducklab_admin_active'); location.reload(); }
     </script>
 </body>
 </html>
